@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/kevinbrivio/batako-backend/internal/handlers"
 	"github.com/kevinbrivio/batako-backend/internal/store"
+	_ "github.com/lib/pq"
 )
 
 func main() {
