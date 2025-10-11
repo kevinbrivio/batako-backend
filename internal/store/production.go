@@ -13,8 +13,8 @@ type ProductionStore struct {
 
 func (s *ProductionStore) Create(ctx context.Context, p *models.Production) error {
 	query := `
-		INSERT INTO Productions (quantity, cement_used, sand_used, total)
-		VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at
+		INSERT INTO Productions (quantity, cement_used, sand_used)
+		VALUES ($1, $2, $3) RETURNING id, created_at, updated_at
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
@@ -26,7 +26,6 @@ func (s *ProductionStore) Create(ctx context.Context, p *models.Production) erro
 		p.Quantity,
 		p.CementUsed,
 		p.SandUsed,
-		p.Total,
 	).Scan(
 		&p.ID,
 		&p.CreatedAt,

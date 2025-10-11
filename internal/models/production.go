@@ -7,7 +7,6 @@ type Production struct {
 	Quantity int `json:"quantity"`
 	CementUsed float64 `json:"cement_used"`
 	SandUsed float64 `json:"sand_used"`
-	Total int `json:"total"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
