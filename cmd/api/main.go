@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/kevinbrivio/batako-backend/internal/handlers"
@@ -13,7 +14,7 @@ import (
 
 func main() {
 	// OPEN DB
-	var DB_ADDR = "postgres://batako_user@localhost:5432/batako?sslmode=disable"
+	var DB_ADDR = os.Getenv("DB_ADDR")
 	db, err := sql.Open("postgres", DB_ADDR)
 	if err != nil {
 		log.Fatal(err.Error())
