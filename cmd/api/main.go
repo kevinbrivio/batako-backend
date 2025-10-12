@@ -14,12 +14,17 @@ import (
 
 func main() {
 	// OPEN DB
-	var DB_ADDR = os.Getenv("DB_ADDR")
-	db, err := sql.Open("postgres", DB_ADDR)
+	var connStr = os.Getenv("CONN_STR")
+	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	defer db.Close()
+
+	_, err = db.Exec("SET search_path TO my_schema")
+    if err != nil {
+        log.Fatal(err)
+    }
 
 	storage := store.NewStorage(db)
 	prodHandler := handlers.NewProductionHandler(storage)
