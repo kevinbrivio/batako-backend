@@ -9,6 +9,9 @@ import (
 type Storage struct {
 	Production interface {
 		Create(context.Context, *models.Production) error
+		GetAll(context.Context) ([]models.Production, error)
+		GetByID(context.Context, string) (*models.Production, error)
+		Update(context.Context, *models.Production) error
 	}
 }
 
