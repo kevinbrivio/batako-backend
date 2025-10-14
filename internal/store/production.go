@@ -164,7 +164,7 @@ func (s *ProductionStore) Delete(ctx context.Context, pID string) error {
 	}
 
 	if rows == 0 {
-		return utils.NewNotFoundError("Production not found")
+		return utils.NewNotFoundError("Production")
 	}
 	return nil
 }
