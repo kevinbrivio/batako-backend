@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kevinbrivio/batako-backend/internal/models"
+	"github.com/kevinbrivio/batako-backend/internal/utils"
 )
 
 type ProductionStore struct {
@@ -41,5 +42,128 @@ func (s *ProductionStore) Create(ctx context.Context, p *models.Production) erro
 		return err
 	}
 
+	return nil
+}
+
+func (s *ProductionStore) GetAll(ctx context.Context) ([]models.Production, error) {
+	query := `
+		SELECT * FROM productions
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
+	defer cancel()
+
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var productions []models.Production
+
+	for rows.Next() {
+		var p models.Production
+		if err := rows.Scan(
+			&p.ID,
+			&p.Quantity,
+			&p.CementUsed,
+			&p.SandUsed,
+			&p.CreatedAt,
+			&p.UpdatedAt,
+		); err != nil {
+			return productions, err
+		}
+		productions = append(productions, p)
+	}
+	if err = rows.Err(); err != nil {
+		return productions, err
+	}
+
+	return productions, nil
+}
+
+func (s *ProductionStore) GetByID(ctx context.Context, pID string) (*models.Production, error) {
+	query := `
+		SELECT * FROM productions
+		WHERE id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
+	defer cancel()
+
+	var p models.Production
+
+	err := s.db.QueryRowContext(
+		ctx, query,
+		pID,
+	).Scan(
+		&p.ID,
+		&p.Quantity,
+		&p.CementUsed,
+		&p.SandUsed,
+		&p.CreatedAt,
+		&p.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &p, nil
+}
+
+func (s *ProductionStore) Update(ctx context.Context, p *models.Production) error {
+	query := `
+		UPDATE productions
+		SET quantity = $2, cement_used = $3, sand_used = $4,
+		WHERE id = $1
+		RETURNING created_at
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
+	defer cancel()
+
+	err := s.db.QueryRowContext(
+		ctx,
+		query,
+		p.ID,
+		p.Quantity,
+		p.CementUsed,
+		p.SandUsed,
+	).Scan(
+		&p.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		return utils.NewNotFoundError("Production")
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *ProductionStore) Delete(ctx context.Context, pID string) error {
+	query := `
+		DELETE FROM productions
+		WHERE id = $1;	
+	`
+	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
+	defer cancel()
+
+	res, err := s.db.ExecContext(ctx, query, pID)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return utils.NewNotFoundError("Production not found")
+	}
 	return nil
 }

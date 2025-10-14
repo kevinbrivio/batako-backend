@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/kevinbrivio/batako-backend/internal/handlers"
 	"github.com/kevinbrivio/batako-backend/internal/store"
 	_ "github.com/lib/pq"
@@ -29,8 +29,11 @@ func main() {
 	storage := store.NewStorage(db)
 	prodHandler := handlers.NewProductionHandler(storage)
 
-	r := mux.NewRouter()
-	r.HandleFunc("/productions", prodHandler.CreateProduction).Methods("POST")
+	r := chi.NewRouter()
+	r.Post("/productions", prodHandler.CreateProduction)
+	r.Get("/productions", prodHandler.GetAllProductions)
+	r.Get("/productions/{id}", prodHandler.GetProduction)
+	r.Put("/productions/{id}", prodHandler.UpdateProduction)
 	
 	log.Println("Server running at :8080")
     log.Fatal(http.ListenAndServe(":8080", r))
