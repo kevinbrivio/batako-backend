@@ -37,7 +37,7 @@ func (h *ProductionHandler) CreateProduction(w http.ResponseWriter, r *http.Requ
 		return 
 	}
 
-	utils.WriteJSON(w, http.StatusCreated, req)
+	utils.WriteJSON(w, http.StatusCreated, "Production created successfully",req)
 }
 
 func (h *ProductionHandler) GetAllProductions(w http.ResponseWriter, r *http.Request) {
@@ -49,7 +49,7 @@ func (h *ProductionHandler) GetAllProductions(w http.ResponseWriter, r *http.Req
 		return
 	}
 	
-	utils.WriteJSON(w, http.StatusOK, prods)
+	utils.WriteJSON(w, http.StatusOK, "Sucessfully get all productions", prods)
 }
 
 func (h *ProductionHandler) GetProduction(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +69,7 @@ func (h *ProductionHandler) GetProduction(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, prod)
+	utils.WriteJSON(w, http.StatusOK, "Sucessfully get production", prod)
 }
 
 func (h *ProductionHandler) UpdateProduction(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +92,7 @@ func (h *ProductionHandler) UpdateProduction(w http.ResponseWriter, r *http.Requ
 		return 
 	}
 
-	utils.WriteJSON(w, http.StatusOK, prod)
+	utils.WriteJSON(w, http.StatusOK, "Production updated successfully", prod)
 }
 
 func (h *ProductionHandler) DeleteProduction(w http.ResponseWriter, r *http.Request) {
@@ -105,5 +105,5 @@ func (h *ProductionHandler) DeleteProduction(w http.ResponseWriter, r *http.Requ
 		return 
 	}
 
-	utils.WriteJSON(w, http.StatusOK, "Production deleted successfully")
+	utils.WriteJSON(w, http.StatusOK, "Production deleted successfully", nil)
 }
