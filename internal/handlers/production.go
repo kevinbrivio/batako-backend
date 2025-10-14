@@ -94,3 +94,16 @@ func (h *ProductionHandler) UpdateProduction(w http.ResponseWriter, r *http.Requ
 
 	utils.WriteJSON(w, http.StatusOK, prod)
 }
+
+func (h *ProductionHandler) DeleteProduction(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	idStr := chi.URLParam(r, "id")
+	err := h.Store.Production.Delete(ctx, idStr)
+	if err != nil {
+		utils.WriteError(w, err)
+		return 
+	}
+
+	utils.WriteJSON(w, http.StatusOK, "Production deleted successfully")
+}

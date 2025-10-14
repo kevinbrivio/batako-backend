@@ -12,6 +12,7 @@ type Storage struct {
 		GetAll(context.Context) ([]models.Production, error)
 		GetByID(context.Context, string) (*models.Production, error)
 		Update(context.Context, *models.Production) error
+		Delete(context.Context, string) error
 	}
 }
 

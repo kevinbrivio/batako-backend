@@ -143,3 +143,27 @@ func (s *ProductionStore) Update(ctx context.Context, p *models.Production) erro
 
 	return nil
 }
+
+func (s *ProductionStore) Delete(ctx context.Context, pID string) error {
+	query := `
+		DELETE FROM productions
+		WHERE id = $1;	
+	`
+	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
+	defer cancel()
+
+	res, err := s.db.ExecContext(ctx, query, pID)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return utils.NewNotFoundError("Production not found")
+	}
+	return nil
+}
