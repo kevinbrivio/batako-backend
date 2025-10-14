@@ -34,6 +34,7 @@ func main() {
 	r.Get("/productions", prodHandler.GetAllProductions)
 	r.Get("/productions/{id}", prodHandler.GetProduction)
 	r.Put("/productions/{id}", prodHandler.UpdateProduction)
+	r.Delete("/productions/{id}", prodHandler.DeleteProduction)
 	
 	log.Println("Server running at :8080")
     log.Fatal(http.ListenAndServe(":8080", r))

@@ -114,10 +114,11 @@ func (s *ProductionStore) GetByID(ctx context.Context, pID string) (*models.Prod
 func (s *ProductionStore) Update(ctx context.Context, p *models.Production) error {
 	query := `
 		UPDATE productions
-		SET quantity = $2, cement_used = $3, sand_used = $4,
+		SET quantity = $2, cement_used = $3, sand_used = $4
 		WHERE id = $1
-		RETURNING created_at
+		RETURNING updated_at
 	`
+
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
 	defer cancel()
@@ -163,7 +164,7 @@ func (s *ProductionStore) Delete(ctx context.Context, pID string) error {
 	}
 
 	if rows == 0 {
-		return utils.NewNotFoundError("Production not found")
+		return utils.NewNotFoundError("Production")
 	}
 	return nil
 }
