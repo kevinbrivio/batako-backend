@@ -48,6 +48,8 @@ func (s *ProductionStore) Create(ctx context.Context, p *models.Production) erro
 func (s *ProductionStore) GetAll(ctx context.Context, limit, offset int) ([]models.Production, error) {
 	query := `
 		SELECT * FROM productions
+		ORDER by id
+		LIMIT $1 OFFSET $2
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
