@@ -45,9 +45,17 @@ func (s *ProductionStore) Create(ctx context.Context, p *models.Production) erro
 	return nil
 }
 
-func (s *ProductionStore) GetAll(ctx context.Context, limit, offset int) ([]models.Production, error) {
+func (s *ProductionStore) GetAll(ctx context.Context, limit, offset int) ([]models.Production, int, error) {
 	query := `
-		SELECT * FROM productions
+		SELECT 
+			id, 
+			quantity,
+			cement_used,
+			sand_used,
+			COUNT(*) OVER() as total_count
+			created_at
+			updated_at
+		FROM productions
 		ORDER by id
 		LIMIT $1 OFFSET $2
 	`
@@ -58,11 +66,12 @@ func (s *ProductionStore) GetAll(ctx context.Context, limit, offset int) ([]mode
 	// Pass limit and offset
 	rows, err := s.db.QueryContext(ctx, query, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer rows.Close()
 
 	var productions []models.Production
+	var totalCount int
 
 	for rows.Next() {
 		var p models.Production
@@ -71,18 +80,19 @@ func (s *ProductionStore) GetAll(ctx context.Context, limit, offset int) ([]mode
 			&p.Quantity,
 			&p.CementUsed,
 			&p.SandUsed,
+			&totalCount, 
 			&p.CreatedAt,
 			&p.UpdatedAt,
 		); err != nil {
-			return productions, err
+			return productions, 0, err
 		}
 		productions = append(productions, p)
 	}
 	if err = rows.Err(); err != nil {
-		return productions, err
+		return productions, 0, err
 	}
 
-	return productions, nil
+	return productions, totalCount, nil
 }
 
 func (s *ProductionStore) GetByID(ctx context.Context, pID string) (*models.Production, error) {

@@ -58,13 +58,23 @@ func (h *ProductionHandler) GetAllProductions(w http.ResponseWriter, r *http.Req
 	// Calculate offset
 	offset := (page - 1) * limit
 
-	prods, err := h.Store.Production.GetAll(ctx, limit, offset);
+	prods, totalCount, err := h.Store.Production.GetAll(ctx, limit, offset);
 	if err != nil {
 		utils.WriteError(w, utils.NewInternalServerError(err))
 		return
 	}
+
+	totalPages := (totalCount + limit - 1) / page
 	
-	utils.WriteJSON(w, http.StatusOK, "Sucessfully get all productions", prods)
+	response := utils.PaginatedResponse{
+		Data: prods,
+		Total: totalCount,
+		Page: page,
+		PageSize: limit,
+		TotalPages: totalPages,
+	}
+	
+	utils.WriteJSON(w, http.StatusOK, "Sucessfully get all productions", response)
 }
 
 func (h *ProductionHandler) GetProduction(w http.ResponseWriter, r *http.Request) {

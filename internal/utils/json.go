@@ -10,6 +10,14 @@ type APIResponse struct {
 	Data interface{} `json:"data,omitempty"`
 }
 
+type PaginatedResponse struct {
+	Data interface{} `json:"data"`
+	Total int `json:"total"`
+	Page int `json:"page"`
+	PageSize int `json:"page_size"`
+	TotalPages int `json:"total_pages"`
+}
+
 // Send JSON as message
 func WriteJSON(w http.ResponseWriter, status int, message string, data any) error {
 	w.Header().Set("Content-Type", "application/json")
