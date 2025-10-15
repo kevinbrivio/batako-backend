@@ -45,7 +45,7 @@ func (s *ProductionStore) Create(ctx context.Context, p *models.Production) erro
 	return nil
 }
 
-func (s *ProductionStore) GetAll(ctx context.Context) ([]models.Production, error) {
+func (s *ProductionStore) GetAll(ctx context.Context, limit, offset int) ([]models.Production, error) {
 	query := `
 		SELECT * FROM productions
 	`
@@ -53,7 +53,8 @@ func (s *ProductionStore) GetAll(ctx context.Context) ([]models.Production, erro
 	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query)
+	// Pass limit and offset
+	rows, err := s.db.QueryContext(ctx, query, limit, offset)
 	if err != nil {
 		return nil, err
 	}
