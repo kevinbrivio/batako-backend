@@ -3,7 +3,7 @@ package models
 import "time"
 
 type Production struct {
-	ID string `json:"ID"`
+	ID string `json:"id"`
 	Quantity int `json:"quantity"`
 	CementUsed float64 `json:"cement_used"`
 	SandUsed float64 `json:"sand_used"`

@@ -45,21 +45,33 @@ func (s *ProductionStore) Create(ctx context.Context, p *models.Production) erro
 	return nil
 }
 
-func (s *ProductionStore) GetAll(ctx context.Context) ([]models.Production, error) {
+func (s *ProductionStore) GetAll(ctx context.Context, limit, offset int) ([]models.Production, int, error) {
 	query := `
-		SELECT * FROM productions
+		SELECT 
+			id, 
+			quantity,
+			cement_used,
+			sand_used,
+			COUNT(*) OVER() as total_count
+			created_at
+			updated_at
+		FROM productions
+		ORDER by id
+		LIMIT $1 OFFSET $2
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query)
+	// Pass limit and offset
+	rows, err := s.db.QueryContext(ctx, query, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer rows.Close()
 
 	var productions []models.Production
+	var totalCount int
 
 	for rows.Next() {
 		var p models.Production
@@ -68,18 +80,19 @@ func (s *ProductionStore) GetAll(ctx context.Context) ([]models.Production, erro
 			&p.Quantity,
 			&p.CementUsed,
 			&p.SandUsed,
+			&totalCount, 
 			&p.CreatedAt,
 			&p.UpdatedAt,
 		); err != nil {
-			return productions, err
+			return productions, 0, err
 		}
 		productions = append(productions, p)
 	}
 	if err = rows.Err(); err != nil {
-		return productions, err
+		return productions, 0, err
 	}
 
-	return productions, nil
+	return productions, totalCount, nil
 }
 
 func (s *ProductionStore) GetByID(ctx context.Context, pID string) (*models.Production, error) {
@@ -114,10 +127,11 @@ func (s *ProductionStore) GetByID(ctx context.Context, pID string) (*models.Prod
 func (s *ProductionStore) Update(ctx context.Context, p *models.Production) error {
 	query := `
 		UPDATE productions
-		SET quantity = $2, cement_used = $3, sand_used = $4,
+		SET quantity = $2, cement_used = $3, sand_used = $4
 		WHERE id = $1
-		RETURNING created_at
+		RETURNING updated_at
 	`
+
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
 	defer cancel()
@@ -163,7 +177,7 @@ func (s *ProductionStore) Delete(ctx context.Context, pID string) error {
 	}
 
 	if rows == 0 {
-		return utils.NewNotFoundError("Production not found")
+		return utils.NewNotFoundError("Production")
 	}
 	return nil
 }

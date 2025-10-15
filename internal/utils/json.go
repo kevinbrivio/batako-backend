@@ -5,11 +5,29 @@ import (
 	"net/http"
 )
 
+type APIResponse struct {
+	Message string `json:"message"`
+	Data interface{} `json:"data,omitempty"`
+}
+
+type PaginatedResponse struct {
+	Data interface{} `json:"data"`
+	Total int `json:"total"`
+	Page int `json:"page"`
+	PageSize int `json:"page_size"`
+	TotalPages int `json:"total_pages"`
+}
+
 // Send JSON as message
-func WriteJSON(w http.ResponseWriter, status int, data any) error {
+func WriteJSON(w http.ResponseWriter, status int, message string, data any) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	return json.NewEncoder(w).Encode(data)
+	resp := APIResponse{
+		Message: message,
+		Data: data,
+	}
+
+	return json.NewEncoder(w).Encode(resp)
 }
 
 // Read JSON from request body
@@ -18,16 +36,31 @@ func ReadJSON(r *http.Request, data any) error {
 }
 
 // Handling error
-func WriteError(w http.ResponseWriter, err error) error {
-	// Check if its from Error we defined
-	if appErr, ok := err.(*Error); ok {
-		return WriteJSON(w, appErr.StatusCode, map[string]string{
-			"error": appErr.Message,
-		})
+func WriteError(w http.ResponseWriter, err error, customMsg ...string) error {
+	message := "Server error"
+	
+	if len(customMsg) > 0 && customMsg[0] != "" {
+		message = customMsg[0]
 	}
 
-	// Default to 500
-	return WriteJSON(w, http.StatusInternalServerError, map[string]string{
-		"error": "Internal server error",
-	})
+	var status int
+	var errorMsg string
+
+	// Check if its from Error we defined
+	if appErr, ok := err.(*Error); ok {
+		status = appErr.StatusCode
+		errorMsg = appErr.Message
+		if len(customMsg) > 0 && customMsg[0] == "" {
+            message = appErr.Message
+        }
+	} else {
+		status = http.StatusInternalServerError
+		errorMsg = "Server internal error"
+	}
+
+	resp := map[string]any {
+		"error": errorMsg,
+	}
+
+	return WriteJSON(w, status, message, resp)
 }
