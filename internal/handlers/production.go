@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/kevinbrivio/batako-backend/internal/models"
@@ -32,6 +33,11 @@ func (h *ProductionHandler) CreateProduction(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	
+	now := time.Now()
+	if req.Date.After(now) {
+		utils.WriteError(w, utils.NewBadRequestError("Date cannot be in the future"))
+		return
+	} 
 	
 	if err := h.Store.Production.Create(ctx, &req); err != nil {
 		utils.WriteError(w, utils.NewInternalServerError(err))
