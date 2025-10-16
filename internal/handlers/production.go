@@ -67,7 +67,7 @@ func (h *ProductionHandler) GetAllProductions(w http.ResponseWriter, r *http.Req
 	totalPages := (totalCount + limit - 1) / limit
 	
 	response := utils.PaginatedResponse{
-		Data: prods,
+		Items: prods,
 		Total: totalCount,
 		Page: page,
 		PageSize: limit,
