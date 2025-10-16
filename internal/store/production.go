@@ -51,7 +51,7 @@ func (s *ProductionStore) GetAll(ctx context.Context, limit, offset int) ([]mode
 			id, 
 			quantity,
 			cement_used,
-			sand_used,
+			date,
 			COUNT(*) OVER() as total_count,
 			created_at,
 			updated_at

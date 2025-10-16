@@ -52,7 +52,7 @@ func (h *ProductionHandler) GetAllProductions(w http.ResponseWriter, r *http.Req
 
 	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
 	if err != nil || limit < 1{
-		limit = 10 // default to 1
+		limit = 6 // default to 6 -> weekly
 	}
 
 	// Calculate offset
