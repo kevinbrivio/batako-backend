@@ -11,7 +11,7 @@ type APIResponse struct {
 }
 
 type PaginatedResponse struct {
-	Data interface{} `json:"data"`
+	Items interface{} `json:"items"`
 	Total int `json:"total"`
 	Page int `json:"page"`
 	PageSize int `json:"page_size"`

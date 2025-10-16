@@ -1,0 +1,2 @@
+ALTER TABLE productions
+ADD COLUMN date DATE NOT NULL;

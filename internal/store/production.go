@@ -19,7 +19,7 @@ func (s *ProductionStore) Create(ctx context.Context, p *models.Production) erro
 	p.ID = uuid.New().String()
 	
 	query := `
-		INSERT INTO Productions (id, quantity, cement_used, sand_used)
+		INSERT INTO Productions (id, quantity, cement_used, date)
 		VALUES ($1, $2, $3, $4) RETURNING created_at, updated_at
 	`
 
@@ -32,7 +32,7 @@ func (s *ProductionStore) Create(ctx context.Context, p *models.Production) erro
 		p.ID,
 		p.Quantity,
 		p.CementUsed,
-		p.SandUsed,
+		p.Date,
 	).Scan(
 		&p.CreatedAt,
 		&p.UpdatedAt,
@@ -56,7 +56,7 @@ func (s *ProductionStore) GetAll(ctx context.Context, limit, offset int) ([]mode
 			created_at,
 			updated_at
 		FROM productions
-		ORDER by id
+		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
 	`
 
@@ -70,7 +70,7 @@ func (s *ProductionStore) GetAll(ctx context.Context, limit, offset int) ([]mode
 	}
 	defer rows.Close()
 
-	var productions []models.Production
+	productions := []models.Production{}
 	var totalCount int
 
 	for rows.Next() {
@@ -79,7 +79,7 @@ func (s *ProductionStore) GetAll(ctx context.Context, limit, offset int) ([]mode
 			&p.ID,
 			&p.Quantity,
 			&p.CementUsed,
-			&p.SandUsed,
+			&p.Date,
 			&totalCount, 
 			&p.CreatedAt,
 			&p.UpdatedAt,
@@ -113,7 +113,7 @@ func (s *ProductionStore) GetByID(ctx context.Context, pID string) (*models.Prod
 		&p.ID,
 		&p.Quantity,
 		&p.CementUsed,
-		&p.SandUsed,
+		&p.Date,
 		&p.CreatedAt,
 		&p.UpdatedAt,
 	)
@@ -142,7 +142,7 @@ func (s *ProductionStore) Update(ctx context.Context, p *models.Production) erro
 		p.ID,
 		p.Quantity,
 		p.CementUsed,
-		p.SandUsed,
+		p.Date,
 	).Scan(
 		&p.UpdatedAt,
 	)
