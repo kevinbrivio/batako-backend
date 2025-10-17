@@ -56,7 +56,7 @@ func (s *ProductionStore) GetAll(ctx context.Context, limit, offset int) ([]mode
 			created_at,
 			updated_at
 		FROM productions
-		ORDER BY created_at DESC
+		ORDER BY date DESC
 		LIMIT $1 OFFSET $2
 	`
 

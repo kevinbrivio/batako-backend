@@ -60,7 +60,7 @@ func (s *TransactionStore) GetAll(ctx context.Context, limit, offset int) ([]mod
 			created_at,
 			updated_at
 		FROM transactions
-		ORDER BY created_at DESC
+		ORDER BY purchase_date DESC
 		LIMIT $1 OFFSET $2
 	`
 
