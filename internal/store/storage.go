@@ -15,6 +15,13 @@ type Storage struct {
 		Update(context.Context, *models.Production) error
 		Delete(context.Context, string) error
 	}
+	Transaction interface {
+		Create(context.Context, *models.Transaction) error
+		GetAll(context.Context, int, int) ([]models.Transaction, int, error)
+		GetByID(context.Context, string) (*models.Production, error)
+		Update(context.Context, *models.Production) error
+		Delete(context.Context, string) error
+	}
 }
 
 func NewStorage(db *sql.DB) Storage {
