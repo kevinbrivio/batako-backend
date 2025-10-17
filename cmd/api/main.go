@@ -41,10 +41,10 @@ func main() {
 	
 	r.Route("/transactions", func(r chi.Router) {
 		r.Post("/", transactionHandler.CreateTransaction)
-		r.Get("/", prodHandler.GetAllTransactions)
-		r.Get("/{id}", prodHandler.GetTransaction)
-		r.Put("/{id}", prodHandler.UpdateTransaction)
-		r.Delete("/{id}", prodHandler.DeleteTransaction)
+		r.Get("/", transactionHandler.GetAllTransactions)
+		r.Get("/{id}", transactionHandler.GetTransaction)
+		r.Put("/{id}", transactionHandler.UpdateTransaction)
+		r.Delete("/{id}", transactionHandler.DeleteTransaction)
 	})
 	
 	log.Println("Server running at :8080")
