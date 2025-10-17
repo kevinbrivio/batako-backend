@@ -34,7 +34,7 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 	}
 
 	now := time.Now()
-	if req.Date.After(now) {
+	if req.PurchaseDate.After(now) {
 		utils.WriteError(w, utils.NewBadRequestError("Date cannot be in the future"))
 		return
 	}
