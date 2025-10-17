@@ -27,5 +27,6 @@ type Storage struct {
 func NewStorage(db *sql.DB) Storage {
 	return Storage{
 		Production: &ProductionStore{db: db},
+		Transaction: &TransactionStore{db: db},
 	}
 }
