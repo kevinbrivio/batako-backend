@@ -127,7 +127,7 @@ func (s *ProductionStore) GetByID(ctx context.Context, pID string) (*models.Prod
 func (s *ProductionStore) Update(ctx context.Context, p *models.Production) error {
 	query := `
 		UPDATE productions
-		SET quantity = $2, cement_used = $3, date = $4
+		SET quantity = $2, cement_used = $3, date = $4, updated_at = NOW()
 		WHERE id = $1
 		RETURNING created_at, updated_at
 	`
