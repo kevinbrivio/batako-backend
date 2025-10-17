@@ -129,9 +129,8 @@ func (s *ProductionStore) Update(ctx context.Context, p *models.Production) erro
 		UPDATE productions
 		SET quantity = $2, cement_used = $3, date = $4
 		WHERE id = $1
-		RETURNING updated_at
+		RETURNING created_at, updated_at
 	`
-
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
 	defer cancel()
@@ -144,6 +143,7 @@ func (s *ProductionStore) Update(ctx context.Context, p *models.Production) erro
 		p.CementUsed,
 		p.Date,
 	).Scan(
+		&p.CreatedAt,
 		&p.UpdatedAt,
 	)
 
