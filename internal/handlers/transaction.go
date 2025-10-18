@@ -96,7 +96,7 @@ func (h *TransactionHandler) GetTransaction(w http.ResponseWriter, r *http.Reque
 	t, err := h.Store.Transaction.GetByID(ctx, idStr)
 
 	if err != nil {
-		utils.WriteError(w, utils.NewInternalServerError(err))
+		utils.WriteError(w, err)
 		return
 	}
 

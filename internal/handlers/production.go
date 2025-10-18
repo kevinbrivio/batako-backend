@@ -96,7 +96,7 @@ func (h *ProductionHandler) GetProduction(w http.ResponseWriter, r *http.Request
 	prod, err := h.Store.Production.GetByID(ctx, idStr)
 
 	if err != nil {
-		utils.WriteError(w, utils.NewInternalServerError(err))
+		utils.WriteError(w, err)
 		return
 	}
 
