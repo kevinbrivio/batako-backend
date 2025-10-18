@@ -117,6 +117,11 @@ func (s *ProductionStore) GetByID(ctx context.Context, pID string) (*models.Prod
 		&p.CreatedAt,
 		&p.UpdatedAt,
 	)
+
+	if err == sql.ErrNoRows {
+		return nil, utils.NewNotFoundError("Production")
+	}
+	
 	if err != nil {
 		return nil, err
 	}

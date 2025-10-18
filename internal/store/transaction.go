@@ -121,6 +121,11 @@ func (s *TransactionStore) GetByID(ctx context.Context, pID string) (*models.Tra
 		&t.CreatedAt,
 		&t.UpdatedAt,
 	)
+
+	if err == sql.ErrNoRows {
+		return nil, utils.NewNotFoundError("Transaction")
+	}
+
 	if err != nil {
 		return nil, err
 	}
