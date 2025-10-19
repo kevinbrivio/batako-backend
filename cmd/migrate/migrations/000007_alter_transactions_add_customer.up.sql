@@ -1,0 +1,2 @@
+ALTER TABLE transactions
+ADD COLUMN customer VARCHAR(50) NOT NULL;
