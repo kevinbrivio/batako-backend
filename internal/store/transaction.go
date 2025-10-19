@@ -18,7 +18,7 @@ func (s *TransactionStore) Create(ctx context.Context, t *models.Transaction) er
 	t.ID = uuid.New().String()
 
 	query := `
-		INSERT INTO transactions (id, customer, address, quantity, total_price, date)
+		INSERT INTO transactions (id, customer, address, quantity, total_price, purchase_date)
 		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING created_at, updated_at
 	`
