@@ -28,6 +28,16 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	if req.Customer == "" {
+		utils.WriteError(w, utils.NewBadRequestError("Customer name cannot be empty"))
+		return 
+	}
+
+	if req.Address == "" {
+		utils.WriteError(w, utils.NewBadRequestError("Address cannot be empty"))
+		return 
+	}
+
 	if req.Quantity <= 0 {
 		utils.WriteError(w, utils.NewBadRequestError("Quantity is minimum 0."))
 		return

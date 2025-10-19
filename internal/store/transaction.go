@@ -18,8 +18,8 @@ func (s *TransactionStore) Create(ctx context.Context, t *models.Transaction) er
 	t.ID = uuid.New().String()
 
 	query := `
-		INSERT INTO transactions (id, quantity, total_price, date)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO transactions (id, customer, address, quantity, total_price, date)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING created_at, updated_at
 	`
 
@@ -34,6 +34,8 @@ func (s *TransactionStore) Create(ctx context.Context, t *models.Transaction) er
 		ctx,
 		query,
 		t.ID,
+		t.Customer,
+		t.Address,
 		t.Quantity,
 		totalPrice,
 		t.PurchaseDate,
@@ -53,6 +55,8 @@ func (s *TransactionStore) GetAll(ctx context.Context, limit, offset int) ([]mod
 	query := `
 		SELECT 
 			id, 
+			customer, 
+			address,
 			quantity,
 			total_price,
 			COUNT(*) OVER() as total_count,
@@ -81,6 +85,8 @@ func (s *TransactionStore) GetAll(ctx context.Context, limit, offset int) ([]mod
 		var t models.Transaction
 		if err := rows.Scan(
 			&t.ID,
+			&t.Customer,
+			&t.Address,
 			&t.Quantity,
 			&t.TotalPrice,
 			&totalCount, 
@@ -115,6 +121,8 @@ func (s *TransactionStore) GetByID(ctx context.Context, pID string) (*models.Tra
 		pID,
 	).Scan(
 		&t.ID,
+		&t.Customer,
+		&t.Address,
 		&t.Quantity,
 		&t.TotalPrice,
 		&t.PurchaseDate,
@@ -136,7 +144,7 @@ func (s *TransactionStore) GetByID(ctx context.Context, pID string) (*models.Tra
 func (s *TransactionStore) Update(ctx context.Context, t *models.Transaction) error {
 	query := `
 		UPDATE transactions
-		SET quantity = $2, total_price = $3, purchase_date = $4, updated_at = NOW()
+		SET customer = $2, address = $3, quantity = $4, total_price = $4, purchase_date = $5, updated_at = NOW()
 		WHERE id = $1
 		RETURNING created_at, updated_at
 	`
@@ -152,6 +160,8 @@ func (s *TransactionStore) Update(ctx context.Context, t *models.Transaction) er
 		ctx,
 		query,
 		t.ID,
+		t.Customer,
+		t.Address,
 		t.Quantity,
 		totalPrice,
 		t.PurchaseDate,
