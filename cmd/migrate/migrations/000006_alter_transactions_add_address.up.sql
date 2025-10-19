@@ -1,0 +1,2 @@
+ALTER TABLE transactions
+ADD COLUMN address VARCHAR(50) NOT NULL;
