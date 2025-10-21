@@ -66,26 +66,21 @@ func (h *TransactionHandler) GetTransactionsWeekly(w http.ResponseWriter, r *htt
 		page = 1 // default to 1
 	}
 
-	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
-	if err != nil || limit < 1 {
-		limit = 6 // default to 6 -> weekly
-	}
-
 	weekOffset := page - 1
 
-	t, totalCount, err := h.Store.Transaction.GetAllWeekly(ctx, limit, weekOffset)
+	t, totalCount, err := h.Store.Transaction.GetAllWeekly(ctx, weekOffset)
 	if err != nil {
 		utils.WriteError(w, utils.NewInternalServerError(err))
 		return
 	}
 
-	totalPages := (totalCount + limit - 1) / limit
+	totalPages, err := h.Store.Transaction.GetTotalWeeks(ctx)
 
 	response := utils.PaginatedResponse{
 		Items:      t,
 		Total:      totalCount,
 		Page:       page,
-		PageSize:   limit,
+		PageSize:   len(t),
 		TotalPages: totalPages,
 	}
 

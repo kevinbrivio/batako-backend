@@ -105,7 +105,7 @@ func (s *TransactionStore) GetAll(ctx context.Context, limit, offset int) ([]mod
 	return transactions, totalCount, nil
 }
 
-func (s *TransactionStore) GetAllWeekly(ctx context.Context, limit, weekOffset int) ([]models.Transaction, int, error) {
+func (s *TransactionStore) GetAllWeekly(ctx context.Context, weekOffset int) ([]models.Transaction, int, error) {
 	now := time.Now()
 	start, end := getWeekRange(now, weekOffset)
 	
@@ -129,7 +129,7 @@ func (s *TransactionStore) GetAllWeekly(ctx context.Context, limit, weekOffset i
 	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, start, end, limit)
+	rows, err := s.db.QueryContext(ctx, query, start, end)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -275,4 +275,21 @@ func getWeekRange(now time.Time, weekOffset int) (time.Time, time.Time) {
 	endOfWeek := startOfWeek.AddDate(0, 0, 6).Add(time.Hour * 23 + time.Minute * 59 + time.Second * 59)
 
 	return startOfWeek, endOfWeek
+}
+
+func (s *TransactionStore) GetTotalWeeks(ctx context.Context) (int, error) {
+    query := `
+		SELECT COUNT(DISTINCT date_trunc('week', purchase_date)) 
+		FROM transactions
+	`
+    ctx, cancel := context.WithTimeout(ctx, time.Second*5)
+    defer cancel()
+
+    var totalPages int
+    err := s.db.QueryRowContext(ctx, query).Scan(&totalPages)
+    if err != nil {
+        return 0, err
+    }
+
+    return totalPages, nil
 }

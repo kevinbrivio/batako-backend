@@ -18,10 +18,11 @@ type Storage struct {
 	Transaction interface {
 		Create(context.Context, *models.Transaction) error
 		GetAll(context.Context, int, int) ([]models.Transaction, int, error)
-		GetAllWeekly(context.Context, int, int) ([]models.Transaction, int, error)
+		GetAllWeekly(context.Context, int) ([]models.Transaction, int, error)
 		GetByID(context.Context, string) (*models.Transaction, error)
 		Update(context.Context, *models.Transaction) error
 		Delete(context.Context, string) error
+		GetTotalWeeks(ctx context.Context) (int, error)
 	}
 }
 
