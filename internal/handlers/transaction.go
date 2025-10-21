@@ -75,6 +75,9 @@ func (h *TransactionHandler) GetTransactionsWeekly(w http.ResponseWriter, r *htt
 	}
 
 	totalPages, err := h.Store.Transaction.GetTotalWeeks(ctx)
+	if err != nil {
+		utils.WriteError(w, utils.NewInternalServerError(err))
+	}
 
 	response := utils.PaginatedResponse{
 		Items:      t,
