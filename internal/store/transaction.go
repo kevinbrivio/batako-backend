@@ -123,7 +123,6 @@ func (s *TransactionStore) GetAllWeekly(ctx context.Context, weekOffset int) ([]
 		FROM transactions
 		WHERE purchase_date BETWEEN $1 and $2
 		ORDER BY purchase_date DESC
-		LIMIT $3
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
