@@ -57,6 +57,41 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 	utils.WriteJSON(w, http.StatusCreated, "Transaction created successfully", req)
 }
 
+func (h *TransactionHandler) GetTransactionsWeekly(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Get query params
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil || page < 1 {
+		page = 1 // default to 1
+	}
+
+	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+	if err != nil || limit < 1 {
+		limit = 6 // default to 6 -> weekly
+	}
+
+	weekOffset := page - 1
+
+	t, totalCount, err := h.Store.Transaction.GetAllWeekly(ctx, limit, weekOffset)
+	if err != nil {
+		utils.WriteError(w, utils.NewInternalServerError(err))
+		return
+	}
+
+	totalPages := (totalCount + limit - 1) / limit
+
+	response := utils.PaginatedResponse{
+		Items:      t,
+		Total:      totalCount,
+		Page:       page,
+		PageSize:   limit,
+		TotalPages: totalPages,
+	}
+
+	utils.WriteJSON(w, http.StatusOK, "Sucessfully get weekly Transactions", response)
+}
+
 func (h *TransactionHandler) GetAllTransactions(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
