@@ -282,7 +282,7 @@ func (s *TransactionStore) GetTotalWeeks(ctx context.Context) (int, error) {
 		SELECT COUNT(DISTINCT date_trunc('week', purchase_date)) 
 		FROM transactions
 	`
-    ctx, cancel := context.WithTimeout(ctx, time.Second*5)
+    ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
     defer cancel()
 
     var totalPages int
@@ -291,5 +291,5 @@ func (s *TransactionStore) GetTotalWeeks(ctx context.Context) (int, error) {
         return 0, err
     }
 
-    return totalPages, nil
+    return int(totalPages), nil
 }
