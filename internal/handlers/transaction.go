@@ -99,7 +99,7 @@ func (h *TransactionHandler) GetTransactionsMonthly(w http.ResponseWriter, r *ht
 		monthOffset = 0
 	}
 
-	t, totalCount, err := h.Store.Transaction.GetAllMonthly(ctx, monthOffset)
+	t, totalCount, totalQuantity, totalRevenue, err := h.Store.Transaction.GetAllMonthly(ctx, monthOffset)
 	
 	if err != nil {
 		utils.WriteError(w, utils.NewInternalServerError(err))
@@ -109,6 +109,8 @@ func (h *TransactionHandler) GetTransactionsMonthly(w http.ResponseWriter, r *ht
 	data := map[string]interface{}{
         "transactions": t,
         "total_count":  totalCount,
+		"total_revenue":  totalRevenue,
+		"total_quantity":  totalQuantity,
         "month":        monthOffset, // 1 for January, etc.
         "month_name":   time.Month(monthOffset).String(), // e.g., "January"
     }

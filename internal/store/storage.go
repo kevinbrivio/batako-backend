@@ -19,7 +19,7 @@ type Storage struct {
 		Create(context.Context, *models.Transaction) error
 		GetAll(context.Context, int, int) ([]models.Transaction, int, error)
 		GetAllWeekly(context.Context, int) ([]models.Transaction, int, error)
-		GetAllMonthly(context.Context, int) ([]models.Transaction, int, error)
+		GetAllMonthly(context.Context, int) ([]models.Transaction, int, int, uint64, error)
 		GetByID(context.Context, string) (*models.Transaction, error)
 		Update(context.Context, *models.Transaction) error
 		Delete(context.Context, string) error

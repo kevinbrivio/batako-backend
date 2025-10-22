@@ -161,7 +161,7 @@ func (s *TransactionStore) GetAllWeekly(ctx context.Context, weekOffset int) ([]
 	return transactions, totalCount, nil
 }
 
-func (s *TransactionStore) GetAllMonthly(ctx context.Context, monthOffset int) ([]models.Transaction, int, error) {
+func (s *TransactionStore) GetAllMonthly(ctx context.Context, monthOffset int) ([]models.Transaction, int, int, uint64, error) {
 	today := time.Now()
 	currMonth := int(today.Month())
 	offset := monthOffset - currMonth
@@ -176,6 +176,8 @@ func (s *TransactionStore) GetAllMonthly(ctx context.Context, monthOffset int) (
 			quantity,
 			total_price,
 			COUNT(*) OVER() as total_count,
+			SUM(total_price) OVER() as total_revenue,
+			SUM(quantity) OVER() as total_quantity,
 			purchase_date,
 			created_at,
 			updated_at
@@ -189,12 +191,12 @@ func (s *TransactionStore) GetAllMonthly(ctx context.Context, monthOffset int) (
 
 	rows, err := s.db.QueryContext(ctx, query, start, end)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, 0, 0, err
 	}
 	defer rows.Close()
 
 	transactions := []models.Transaction{}
-	var totalCount int
+	var totalCount, totalRevenue, totalQuantity int
 
 	for rows.Next() {
 		var t models.Transaction
@@ -205,19 +207,21 @@ func (s *TransactionStore) GetAllMonthly(ctx context.Context, monthOffset int) (
 			&t.Quantity,
 			&t.TotalPrice,
 			&totalCount, 
+			&totalRevenue,
+			&totalQuantity,
 			&t.PurchaseDate,
 			&t.CreatedAt,
 			&t.UpdatedAt,
 		); err != nil {
-			return transactions, 0, err
+			return transactions, 0, 0, 0, err
 		}
 		transactions = append(transactions, t)
 	}
 	if err = rows.Err(); err != nil {
-		return transactions, 0, err
+		return transactions, 0, 0, 0, err
 	}
 
-	return transactions, totalCount, nil
+	return transactions, totalCount, totalQuantity, uint64(totalRevenue), nil
 }
 
 func (s *TransactionStore) GetByID(ctx context.Context, pID string) (*models.Transaction, error) {
