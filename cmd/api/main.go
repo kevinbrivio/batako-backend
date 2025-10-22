@@ -43,7 +43,7 @@ func main() {
 		r.Post("/", transactionHandler.CreateTransaction)
 		r.Get("/", transactionHandler.GetAllTransactions)
 		r.Get("/weekly", transactionHandler.GetTransactionsWeekly)
-		r.Get("/monthly", transactionHandler.GetTransactionsMonthly)
+		r.Get("/", transactionHandler.GetTransactionsMonthly)
 		r.Get("/{id}", transactionHandler.GetTransaction)
 		r.Put("/{id}", transactionHandler.UpdateTransaction)
 		r.Delete("/{id}", transactionHandler.DeleteTransaction)

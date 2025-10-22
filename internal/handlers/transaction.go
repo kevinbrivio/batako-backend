@@ -106,17 +106,14 @@ func (h *TransactionHandler) GetTransactionsMonthly(w http.ResponseWriter, r *ht
 		return
 	}
 
-	data := struct {
-        Transactions []models.Transaction `json:"transactions"`
-        TotalCount   int                  `json:"total_count"`
-        MonthOffset  int                  `json:"month_offset"`
-    }{
-        Transactions: t,
-        TotalCount:   totalCount,
-        MonthOffset:  monthOffset,
+	data := map[string]interface{}{
+        "transactions": t,
+        "total_count":  totalCount,
+        "month":        monthOffset, // 1 for January, etc.
+        "month_name":   time.Month(monthOffset).String(), // e.g., "January"
     }
 
-	utils.WriteJSON(w, http.StatusOK, "Sucessfully get %s Transactions", data)
+	utils.WriteJSON(w, http.StatusOK, "Sucessfully get monthly Transactions", data)
 }
 
 func (h *TransactionHandler) GetAllTransactions(w http.ResponseWriter, r *http.Request) {
