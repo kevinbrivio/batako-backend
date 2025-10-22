@@ -94,12 +94,16 @@ func (h *TransactionHandler) GetTransactionsMonthly(w http.ResponseWriter, r *ht
 	ctx := r.Context()
 
 	// Get query params
-	monthOffset, err := strconv.Atoi(r.URL.Query().Get("month"))
-	if err != nil || monthOffset == 0 {
-		monthOffset = 0
+	monthNum, _ := strconv.Atoi(r.URL.Query().Get("month"))
+	currentMonth := int(time.Now().Month())
+	targetOffset := monthNum - currentMonth  // 10-10=0, 11-10=1, 1-10=-9 (but handle year wrap)
+
+	// For January when current is October: should be +3 months to January 2026
+	if targetOffset < -6 {  // More than half year back
+		targetOffset += 12  // Go to next year's January
 	}
 
-	t, totalCount, totalQuantity, totalRevenue, err := h.Store.Transaction.GetAllMonthly(ctx, monthOffset)
+	t, totalCount, totalQuantity, totalRevenue, err := h.Store.Transaction.GetAllMonthly(ctx, targetOffset)
 	
 	if err != nil {
 		utils.WriteError(w, utils.NewInternalServerError(err))
@@ -111,8 +115,8 @@ func (h *TransactionHandler) GetTransactionsMonthly(w http.ResponseWriter, r *ht
         "total_count":  totalCount,
 		"total_revenue":  totalRevenue,
 		"total_quantity":  totalQuantity,
-        "month":        monthOffset, // 1 for January, etc.
-        "month_name":   time.Month(monthOffset).String(), // e.g., "January"
+        "month":        monthNum, // 1 for January, etc.
+        "month_name":   time.Month(monthNum).String(), // e.g., "January"
     }
 
 	utils.WriteJSON(w, http.StatusOK, "Sucessfully get monthly Transactions", data)

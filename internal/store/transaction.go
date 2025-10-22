@@ -163,10 +163,8 @@ func (s *TransactionStore) GetAllWeekly(ctx context.Context, weekOffset int) ([]
 
 func (s *TransactionStore) GetAllMonthly(ctx context.Context, monthOffset int) ([]models.Transaction, int, int, uint64, error) {
 	today := time.Now()
-	currMonth := int(today.Month())
-	offset := monthOffset - currMonth
 
-	start, end := getMonthRange(today, offset)
+	start, end := getMonthRange(today, monthOffset)
 	
 	query := `
 		SELECT 
@@ -176,8 +174,8 @@ func (s *TransactionStore) GetAllMonthly(ctx context.Context, monthOffset int) (
 			quantity,
 			total_price,
 			COUNT(*) OVER() as total_count,
-			SUM(total_price) OVER() as total_revenue,
 			SUM(quantity) OVER() as total_quantity,
+			SUM(total_price) OVER() as total_revenue,
 			purchase_date,
 			created_at,
 			updated_at
@@ -196,7 +194,8 @@ func (s *TransactionStore) GetAllMonthly(ctx context.Context, monthOffset int) (
 	defer rows.Close()
 
 	transactions := []models.Transaction{}
-	var totalCount, totalRevenue, totalQuantity int
+	var totalCount, totalQuantity int
+	var totalRevenue uint64
 
 	for rows.Next() {
 		var t models.Transaction
@@ -207,8 +206,8 @@ func (s *TransactionStore) GetAllMonthly(ctx context.Context, monthOffset int) (
 			&t.Quantity,
 			&t.TotalPrice,
 			&totalCount, 
-			&totalRevenue,
 			&totalQuantity,
+			&totalRevenue,
 			&t.PurchaseDate,
 			&t.CreatedAt,
 			&t.UpdatedAt,
@@ -221,7 +220,7 @@ func (s *TransactionStore) GetAllMonthly(ctx context.Context, monthOffset int) (
 		return transactions, 0, 0, 0, err
 	}
 
-	return transactions, totalCount, totalQuantity, uint64(totalRevenue), nil
+	return transactions, totalCount, totalQuantity, totalRevenue, nil
 }
 
 func (s *TransactionStore) GetByID(ctx context.Context, pID string) (*models.Transaction, error) {
