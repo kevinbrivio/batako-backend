@@ -162,8 +162,8 @@ func (s *TransactionStore) GetAllWeekly(ctx context.Context, weekOffset int) ([]
 }
 
 func (s *TransactionStore) GetAllMonthly(ctx context.Context, monthOffset int) ([]models.Transaction, int, error) {
-	now := time.Now()
-	start, end := getMonthRange(now, monthOffset)
+	today := time.Now()
+	start, end := getMonthRange(today)
 	
 	query := `
 		SELECT 
@@ -350,25 +350,9 @@ func (s *TransactionStore) GetTotalWeeks(ctx context.Context) (int, error) {
 }
 
 
-func getMonthRange(now time.Time, monthOffset int) (time.Time, time.Time) {
-	year, month, _ := now.Date()
-	targetMonth := time.Month(month) + time.Month(monthOffset)
-	targetYear := year
+func getMonthRange(date time.Time) (time.Time, time.Time) {
+	beginningMonth := date.AddDate(0, 0, -date.Day() + 1)
+	endMonth := date.AddDate(0, 1, -date.Day())
 
-	if targetMonth < time.January {
-		targetMonth += 12
-		targetYear--
-	} else if targetMonth > time.December {
-		targetMonth -= 12
-		targetYear++
-	}
-	
-	// Start: 1st day of the target month at 00:00:00 in the same location
-    startOfMonth := time.Date(targetYear, targetMonth, 1, 0, 0, 0, 0, now.Location())
-    
-    // End: Last day at 23:59:59 - create 1st of next month, subtract 1 day
-    firstOfNextMonth := startOfMonth.AddDate(0, 1, 0)
-    endOfMonth := time.Date(firstOfNextMonth.Year(), firstOfNextMonth.Month(), 0, 23, 59, 59, 0, now.Location())
-    
-	return startOfMonth, endOfMonth
+	return beginningMonth, endMonth
 }
