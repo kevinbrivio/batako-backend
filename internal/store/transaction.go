@@ -161,7 +161,7 @@ func (s *TransactionStore) GetAllWeekly(ctx context.Context, weekOffset int) ([]
 	return transactions, totalCount, nil
 }
 
-func (s *TransactionStore) GetAllMonthly(ctx context.Context, monthOffset int) ([]models.Transaction, int, int, uint64, error) {
+func (s *TransactionStore) GetAllMonthly(ctx context.Context, monthOffset int) ([]models.Transaction, int, int, float64, error) {
 	today := time.Now()
 
 	start, end := getMonthRange(today, monthOffset)
@@ -195,7 +195,7 @@ func (s *TransactionStore) GetAllMonthly(ctx context.Context, monthOffset int) (
 
 	transactions := []models.Transaction{}
 	var totalCount, totalQuantity int
-	var totalRevenue uint64
+	var totalRevenue float64
 
 	for rows.Next() {
 		var t models.Transaction
