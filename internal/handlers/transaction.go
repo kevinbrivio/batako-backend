@@ -90,6 +90,35 @@ func (h *TransactionHandler) GetTransactionsWeekly(w http.ResponseWriter, r *htt
 	utils.WriteJSON(w, http.StatusOK, "Sucessfully get weekly Transactions", response)
 }
 
+func (h *TransactionHandler) GetTransactionsMonthly(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Get query params
+	monthOffset, err := strconv.Atoi(r.URL.Query().Get("month"))
+	if err != nil || monthOffset == 0 {
+		monthOffset = 0
+	}
+
+	t, totalCount, err := h.Store.Transaction.GetAllMonthly(ctx, monthOffset)
+	
+	if err != nil {
+		utils.WriteError(w, utils.NewInternalServerError(err))
+		return
+	}
+
+	data := struct {
+        Transactions []models.Transaction `json:"transactions"`
+        TotalCount   int                  `json:"total_count"`
+        MonthOffset  int                  `json:"month_offset"`
+    }{
+        Transactions: t,
+        TotalCount:   totalCount,
+        MonthOffset:  monthOffset,
+    }
+
+	utils.WriteJSON(w, http.StatusOK, "Sucessfully get %s Transactions", data)
+}
+
 func (h *TransactionHandler) GetAllTransactions(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

@@ -161,6 +161,62 @@ func (s *TransactionStore) GetAllWeekly(ctx context.Context, weekOffset int) ([]
 	return transactions, totalCount, nil
 }
 
+func (s *TransactionStore) GetAllMonthly(ctx context.Context, monthOffset int) ([]models.Transaction, int, error) {
+	now := time.Now()
+	start, end := getMonthRange(now, monthOffset)
+	
+	query := `
+		SELECT 
+			id, 
+			customer, 
+			address,
+			quantity,
+			total_price,
+			COUNT(*) OVER() as total_count,
+			purchase_date,
+			created_at,
+			updated_at
+		FROM transactions
+		WHERE purchase_date BETWEEN $1 and $2
+		ORDER BY purchase_date DESC
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
+	defer cancel()
+
+	rows, err := s.db.QueryContext(ctx, query, start, end)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	transactions := []models.Transaction{}
+	var totalCount int
+
+	for rows.Next() {
+		var t models.Transaction
+		if err := rows.Scan(
+			&t.ID,
+			&t.Customer,
+			&t.Address,
+			&t.Quantity,
+			&t.TotalPrice,
+			&totalCount, 
+			&t.PurchaseDate,
+			&t.CreatedAt,
+			&t.UpdatedAt,
+		); err != nil {
+			return transactions, 0, err
+		}
+		transactions = append(transactions, t)
+	}
+	if err = rows.Err(); err != nil {
+		return transactions, 0, err
+	}
+
+	return transactions, totalCount, nil
+}
+
 func (s *TransactionStore) GetByID(ctx context.Context, pID string) (*models.Transaction, error) {
 	query := `
 		SELECT * FROM transactions
@@ -291,4 +347,28 @@ func (s *TransactionStore) GetTotalWeeks(ctx context.Context) (int, error) {
     }
 
     return int(totalPages), nil
+}
+
+
+func getMonthRange(now time.Time, monthOffset int) (time.Time, time.Time) {
+	year, month, _ := now.Date()
+	targetMonth := time.Month(month) + time.Month(monthOffset)
+	targetYear := year
+
+	if targetMonth < time.January {
+		targetMonth += 12
+		targetYear--
+	} else if targetMonth > time.December {
+		targetMonth -= 12
+		targetYear++
+	}
+	
+	// Start: 1st day of the target month at 00:00:00 in the same location
+    startOfMonth := time.Date(targetYear, targetMonth, 1, 0, 0, 0, 0, now.Location())
+    
+    // End: Last day at 23:59:59 - create 1st of next month, subtract 1 day
+    firstOfNextMonth := startOfMonth.AddDate(0, 1, 0)
+    endOfMonth := time.Date(firstOfNextMonth.Year(), firstOfNextMonth.Month(), 0, 23, 59, 59, 0, now.Location())
+    
+	return startOfMonth, endOfMonth
 }
