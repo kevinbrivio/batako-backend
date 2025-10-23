@@ -65,7 +65,7 @@ func (h *TransactionHandler) GetTransactionsDaily(w http.ResponseWriter, r *http
 	var dt time.Time
 	var err error
 	if dateStr != "" {
-		dt, err = time.Parse("2025-01-02", dateStr)
+		dt, err = time.Parse("2006-01-02", dateStr)
 		if err != nil {
 			dt = time.Now()
 		} 
@@ -83,12 +83,12 @@ func (h *TransactionHandler) GetTransactionsDaily(w http.ResponseWriter, r *http
         "total_count":  totalCount,
 		"total_revenue":  totalRevenue,
 		"total_quantity":  totalQuantity,
-        "date":        dt.Format("2025-10-02"), // 1 for January, etc.
+        "date":        dt.Format("2006-01-02"), // 1 for January, etc.
         "day":   		dt.Weekday().String(), // e.g., "Monday"
         "transactions": t,
     }
 
-	utils.WriteJSON(w, http.StatusOK, "Sucessfully get weekly Transactions", data)
+	utils.WriteJSON(w, http.StatusOK, "Sucessfully get daily Transactions", data)
 }
 
 func (h *TransactionHandler) GetTransactionsWeekly(w http.ResponseWriter, r *http.Request) {
