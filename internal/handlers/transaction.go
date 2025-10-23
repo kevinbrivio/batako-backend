@@ -57,6 +57,40 @@ func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 	utils.WriteJSON(w, http.StatusCreated, "Transaction created successfully", req)
 }
 
+func (h *TransactionHandler) GetTransactionsDaily(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Get query params
+	dateStr := r.URL.Query().Get("date")
+	var dt time.Time
+	var err error
+	if dateStr != "" {
+		dt, err = time.Parse("2025-01-02", dateStr)
+		if err != nil {
+			dt = time.Now()
+		} 
+	} else {
+		dt = time.Now()
+	}
+
+	t, totalCount, totalQuantity, totalRevenue, err := h.Store.Transaction.GetAllDaily(ctx, dt)
+	if err != nil {
+		utils.WriteError(w, utils.NewInternalServerError(err))
+		return
+	}
+
+	data := map[string]interface{}{
+        "total_count":  totalCount,
+		"total_revenue":  totalRevenue,
+		"total_quantity":  totalQuantity,
+        "date":        dt.Format("2025-10-02"), // 1 for January, etc.
+        "day":   		dt.Weekday().String(), // e.g., "Monday"
+        "transactions": t,
+    }
+
+	utils.WriteJSON(w, http.StatusOK, "Sucessfully get weekly Transactions", data)
+}
+
 func (h *TransactionHandler) GetTransactionsWeekly(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

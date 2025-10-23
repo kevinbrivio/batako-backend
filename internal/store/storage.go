@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/kevinbrivio/batako-backend/internal/models"
 )
@@ -20,6 +21,7 @@ type Storage struct {
 		Create(context.Context, *models.Transaction) error
 		GetAll(context.Context, int, int) ([]models.Transaction, int, error)
 		GetAllWeekly(context.Context, int) ([]models.Transaction, int, error)
+		GetAllDaily(context.Context, time.Time) ([]models.Transaction, int, int, float64, error)
 		GetAllMonthly(context.Context, int) ([]models.Transaction, int, int, float64, error)
 		GetByID(context.Context, string) (*models.Transaction, error)
 		Update(context.Context, *models.Transaction) error

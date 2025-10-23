@@ -43,6 +43,7 @@ func main() {
 	r.Route("/transactions", func(r chi.Router) {
 		r.Post("/", transactionHandler.CreateTransaction)
 		r.Get("/", transactionHandler.GetAllTransactions)
+		r.Get("/daily", transactionHandler.GetTransactionsDaily)
 		r.Get("/weekly", transactionHandler.GetTransactionsWeekly)
 		r.Get("/monthly", transactionHandler.GetTransactionsMonthly)
 		r.Get("/{id}", transactionHandler.GetTransaction)

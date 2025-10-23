@@ -223,6 +223,66 @@ func (s *TransactionStore) GetAllMonthly(ctx context.Context, monthOffset int) (
 	return transactions, totalCount, totalQuantity, totalRevenue, nil
 }
 
+func (s *TransactionStore) GetAllDaily(ctx context.Context, date time.Time) ([]models.Transaction, int, int, float64, error) {
+	start, end := utils.GetDayRange(date)
+	
+	query := `
+		SELECT 
+			id, 
+			customer, 
+			address,
+			quantity,
+			total_price,
+			COUNT(*) OVER() as total_count,
+			SUM(quantity) OVER() as total_quantity,
+			SUM(total_price) OVER() as total_revenue,
+			purchase_date,
+			created_at,
+			updated_at
+		FROM transactions
+		WHERE purchase_date BETWEEN $1 and $2
+		ORDER BY purchase_date DESC
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
+	defer cancel()
+
+	rows, err := s.db.QueryContext(ctx, query, start, end)
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+	defer rows.Close()
+
+	transactions := []models.Transaction{}
+	var totalCount, totalQuantity int
+	var totalRevenue float64
+
+	for rows.Next() {
+		var t models.Transaction
+		if err := rows.Scan(
+			&t.ID,
+			&t.Customer,
+			&t.Address,
+			&t.Quantity,
+			&t.TotalPrice,
+			&totalCount, 
+			&totalQuantity,
+			&totalRevenue,
+			&t.PurchaseDate,
+			&t.CreatedAt,
+			&t.UpdatedAt,
+		); err != nil {
+			return transactions, 0, 0, 0, err
+		}
+		transactions = append(transactions, t)
+	}
+	if err = rows.Err(); err != nil {
+		return transactions, 0, 0, 0, err
+	}
+
+	return transactions, totalCount, totalQuantity, totalRevenue, nil
+}
+
 func (s *TransactionStore) GetByID(ctx context.Context, pID string) (*models.Transaction, error) {
 	query := `
 		SELECT * FROM transactions
