@@ -56,7 +56,7 @@ func (s *ProductionStore) GetAll(ctx context.Context, limit, offset int) ([]mode
 			created_at,
 			updated_at
 		FROM productions
-		ORDER BY created_at DESC
+		ORDER BY date DESC
 		LIMIT $1 OFFSET $2
 	`
 
@@ -117,6 +117,11 @@ func (s *ProductionStore) GetByID(ctx context.Context, pID string) (*models.Prod
 		&p.CreatedAt,
 		&p.UpdatedAt,
 	)
+
+	if err == sql.ErrNoRows {
+		return nil, utils.NewNotFoundError("Production")
+	}
+	
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +132,7 @@ func (s *ProductionStore) GetByID(ctx context.Context, pID string) (*models.Prod
 func (s *ProductionStore) Update(ctx context.Context, p *models.Production) error {
 	query := `
 		UPDATE productions
-		SET quantity = $2, cement_used = $3, date = $4
+		SET quantity = $2, cement_used = $3, date = $4, updated_at = NOW()
 		WHERE id = $1
 		RETURNING created_at, updated_at
 	`

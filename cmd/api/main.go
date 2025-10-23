@@ -28,13 +28,26 @@ func main() {
 
 	storage := store.NewStorage(db)
 	prodHandler := handlers.NewProductionHandler(storage)
+	transactionHandler := handlers.NewTransactionHandler(storage)
 
 	r := chi.NewRouter()
-	r.Post("/productions", prodHandler.CreateProduction)
-	r.Get("/productions", prodHandler.GetAllProductions)
-	r.Get("/productions/{id}", prodHandler.GetProduction)
-	r.Put("/productions/{id}", prodHandler.UpdateProduction)
-	r.Delete("/productions/{id}", prodHandler.DeleteProduction)
+	r.Route("/productions", func(r chi.Router) {
+		r.Post("/", prodHandler.CreateProduction)
+		r.Get("/", prodHandler.GetAllProductions)
+		r.Get("/{id}", prodHandler.GetProduction)
+		r.Put("/{id}", prodHandler.UpdateProduction)
+		r.Delete("/{id}", prodHandler.DeleteProduction)
+	})
+	
+	r.Route("/transactions", func(r chi.Router) {
+		r.Post("/", transactionHandler.CreateTransaction)
+		r.Get("/", transactionHandler.GetAllTransactions)
+		r.Get("/weekly", transactionHandler.GetTransactionsWeekly)
+		r.Get("/", transactionHandler.GetTransactionsMonthly)
+		r.Get("/{id}", transactionHandler.GetTransaction)
+		r.Put("/{id}", transactionHandler.UpdateTransaction)
+		r.Delete("/{id}", transactionHandler.DeleteTransaction)
+	})
 	
 	log.Println("Server running at :8080")
     log.Fatal(http.ListenAndServe(":8080", r))
