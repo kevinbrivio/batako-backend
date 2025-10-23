@@ -133,6 +133,7 @@ func (s *ProductionStore) GetAllMonthly(ctx context.Context, monthOffset int) ([
 			&p.Quantity,
 			&totalCount, 
 			&totalQuantity,
+			&p.Date,
 			&p.CreatedAt,
 			&p.UpdatedAt,
 		); err != nil {
