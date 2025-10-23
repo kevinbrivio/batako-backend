@@ -34,7 +34,7 @@ func main() {
 	r.Route("/productions", func(r chi.Router) {
 		r.Post("/", prodHandler.CreateProduction)
 		r.Get("/", prodHandler.GetAllProductions)
-		r.Get("/", prodHandler.GetProductionMonthly)
+		r.Get("/monthly", prodHandler.GetProductionMonthly)
 		r.Get("/{id}", prodHandler.GetProduction)
 		r.Put("/{id}", prodHandler.UpdateProduction)
 		r.Delete("/{id}", prodHandler.DeleteProduction)
@@ -44,7 +44,7 @@ func main() {
 		r.Post("/", transactionHandler.CreateTransaction)
 		r.Get("/", transactionHandler.GetAllTransactions)
 		r.Get("/weekly", transactionHandler.GetTransactionsWeekly)
-		r.Get("/", transactionHandler.GetTransactionsMonthly)
+		r.Get("/monthly", transactionHandler.GetTransactionsMonthly)
 		r.Get("/{id}", transactionHandler.GetTransaction)
 		r.Put("/{id}", transactionHandler.UpdateTransaction)
 		r.Delete("/{id}", transactionHandler.DeleteTransaction)
