@@ -34,6 +34,7 @@ func main() {
 	r.Route("/productions", func(r chi.Router) {
 		r.Post("/", prodHandler.CreateProduction)
 		r.Get("/", prodHandler.GetAllProductions)
+		r.Get("/", prodHandler.GetProductionMonthly)
 		r.Get("/{id}", prodHandler.GetProduction)
 		r.Put("/{id}", prodHandler.UpdateProduction)
 		r.Delete("/{id}", prodHandler.DeleteProduction)

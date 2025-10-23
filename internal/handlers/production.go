@@ -83,6 +83,34 @@ func (h *ProductionHandler) GetAllProductions(w http.ResponseWriter, r *http.Req
 	utils.WriteJSON(w, http.StatusOK, "Sucessfully get all productions", response)
 }
 
+func (h *ProductionHandler) GetProductionMonthly(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	monthNum, _ := strconv.Atoi(r.URL.Query().Get("month"))
+	currentMonth := int(time.Now().Month())
+	targetOffset := monthNum - currentMonth
+
+	if targetOffset < -6 {
+		targetOffset += 12
+	}
+
+	p, totalCount, totalQuantity, err := h.Store.Production.GetAllMonthly(ctx, targetOffset)
+	if err != nil {
+		utils.WriteError(w, utils.NewInternalServerError(err))
+		return
+	}
+
+	data := map[string]interface{}{
+		"productions": p,
+		"total_count": totalCount,
+		"total_quantity": totalQuantity,
+		"month": monthNum,
+		"month_name": time.Month(monthNum).String(),
+	}
+
+	utils.WriteJSON(w, http.StatusOK, "Successfully get monthly productions", data)
+}
+
 func (h *ProductionHandler) GetProduction(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
