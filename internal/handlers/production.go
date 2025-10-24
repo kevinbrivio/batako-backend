@@ -34,7 +34,7 @@ func (h *ProductionHandler) CreateProduction(w http.ResponseWriter, r *http.Requ
 	}
 	
 	now := time.Now()
-	if req.Date.After(now) {
+	if req.ProductionDate.After(now) {
 		utils.WriteError(w, utils.NewBadRequestError("Date cannot be in the future"))
 		return
 	} 

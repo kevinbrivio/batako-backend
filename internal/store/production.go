@@ -19,7 +19,7 @@ func (s *ProductionStore) Create(ctx context.Context, p *models.Production) erro
 	p.ID = uuid.New().String()
 	
 	query := `
-		INSERT INTO Productions (id, quantity, cement_used, date)
+		INSERT INTO productions (id, quantity, cement_used, production_date)
 		VALUES ($1, $2, $3, $4) RETURNING created_at, updated_at
 	`
 
@@ -32,7 +32,7 @@ func (s *ProductionStore) Create(ctx context.Context, p *models.Production) erro
 		p.ID,
 		p.Quantity,
 		p.CementUsed,
-		p.Date,
+		p.ProductionDate,
 	).Scan(
 		&p.CreatedAt,
 		&p.UpdatedAt,
@@ -51,12 +51,12 @@ func (s *ProductionStore) GetAll(ctx context.Context, limit, offset int) ([]mode
 			id, 
 			quantity,
 			cement_used,
-			date,
+			production_date,
 			COUNT(*) OVER() as total_count,
 			created_at,
 			updated_at
 		FROM productions
-		ORDER BY date DESC
+		ORDER BY production_date DESC
 		LIMIT $1 OFFSET $2
 	`
 
@@ -79,7 +79,7 @@ func (s *ProductionStore) GetAll(ctx context.Context, limit, offset int) ([]mode
 			&p.ID,
 			&p.Quantity,
 			&p.CementUsed,
-			&p.Date,
+			&p.ProductionDate,
 			&totalCount, 
 			&p.CreatedAt,
 			&p.UpdatedAt,
@@ -106,12 +106,12 @@ func (s *ProductionStore) GetAllMonthly(ctx context.Context, monthOffset int) ([
 			quantity,
 			COUNT(*) OVER() as total_count,
 			SUM(quantity) OVER() as total_quantity,
-			date,
+			production_date,
 			created_at,
 			updated_at
 		FROM productions
-		WHERE date BETWEEN $1 AND $2
-		ORDER BY date ASC;
+		WHERE production_date BETWEEN $1 AND $2
+		ORDER BY production_date ASC;
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
@@ -133,7 +133,7 @@ func (s *ProductionStore) GetAllMonthly(ctx context.Context, monthOffset int) ([
 			&p.Quantity,
 			&totalCount, 
 			&totalQuantity,
-			&p.Date,
+			&p.ProductionDate,
 			&p.CreatedAt,
 			&p.UpdatedAt,
 		); err != nil {
@@ -166,7 +166,7 @@ func (s *ProductionStore) GetByID(ctx context.Context, pID string) (*models.Prod
 		&p.ID,
 		&p.Quantity,
 		&p.CementUsed,
-		&p.Date,
+		&p.ProductionDate,
 		&p.CreatedAt,
 		&p.UpdatedAt,
 	)
@@ -185,7 +185,7 @@ func (s *ProductionStore) GetByID(ctx context.Context, pID string) (*models.Prod
 func (s *ProductionStore) Update(ctx context.Context, p *models.Production) error {
 	query := `
 		UPDATE productions
-		SET quantity = $2, cement_used = $3, date = $4, updated_at = NOW()
+		SET quantity = $2, cement_used = $3, production_date = $4, updated_at = NOW()
 		WHERE id = $1
 		RETURNING created_at, updated_at
 	`
@@ -199,7 +199,7 @@ func (s *ProductionStore) Update(ctx context.Context, p *models.Production) erro
 		p.ID,
 		p.Quantity,
 		p.CementUsed,
-		p.Date,
+		p.ProductionDate,
 	).Scan(
 		&p.CreatedAt,
 		&p.UpdatedAt,
