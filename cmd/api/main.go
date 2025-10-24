@@ -7,30 +7,55 @@ import (
 	"os"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/joho/godotenv"
 	"github.com/kevinbrivio/batako-backend/internal/handlers"
 	"github.com/kevinbrivio/batako-backend/internal/store"
 	_ "github.com/lib/pq"
 )
 
 func main() {
-	// OPEN DB
-	var connStr = os.Getenv("CONN_STR")
-	db, err := sql.Open("postgres", connStr)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	defer db.Close()
-
-	_, err = db.Exec("SET search_path TO my_schema")
-    if err != nil {
-        log.Fatal(err)
+	if err := godotenv.Load(); err != nil {
+        log.Println("No .env file found, using system environment variables")
     }
+
+	// OPEN DB
+	var connStr = os.Getenv("DATABASE_URL")
+	log.Printf("Connecting to: %s (local dev or prod)", connStr[:len("postgres://") + 10]) // Truncated log
+
+    db, err := sql.Open("postgres", connStr)
+    if err != nil {
+        log.Fatal("Failed to open DB: ", err.Error())
+    }
+    defer db.Close()
+
+	// Ping to verify live connection
+    err = db.Ping()
+    if err != nil {
+        log.Fatal("DB connection failed (ping): ", err.Error())
+    }
+    log.Println("Successfully connected and pinged DB")
+
+    _, err = db.Exec("SET search_path TO my_schema")
+    if err != nil {
+        log.Fatal("Schema set failed: ", err.Error())
+    }
+    log.Println("Schema set to my_schema")
 
 	storage := store.NewStorage(db)
 	prodHandler := handlers.NewProductionHandler(storage)
 	transactionHandler := handlers.NewTransactionHandler(storage)
 
 	r := chi.NewRouter()
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.Logger)
+
+	// Health check endpoint
+    r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+        w.WriteHeader(http.StatusOK)
+        w.Write([]byte("OK"))
+    })
+
 	r.Route("/productions", func(r chi.Router) {
 		r.Post("/", prodHandler.CreateProduction)
 		r.Get("/", prodHandler.GetAllProductions)
