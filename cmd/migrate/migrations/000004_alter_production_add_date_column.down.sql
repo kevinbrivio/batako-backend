@@ -1,2 +1,2 @@
 ALTER TABLE productions
-DROP COLUMN date;
+DROP COLUMN production_date;

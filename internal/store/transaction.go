@@ -107,7 +107,7 @@ func (s *TransactionStore) GetAll(ctx context.Context, limit, offset int) ([]mod
 
 func (s *TransactionStore) GetAllWeekly(ctx context.Context, weekOffset int) ([]models.Transaction, int, error) {
 	now := time.Now()
-	start, end := getWeekRange(now, weekOffset)
+	start, end := utils.GetWeekRange(now, weekOffset)
 	
 	query := `
 		SELECT 
@@ -164,7 +164,67 @@ func (s *TransactionStore) GetAllWeekly(ctx context.Context, weekOffset int) ([]
 func (s *TransactionStore) GetAllMonthly(ctx context.Context, monthOffset int) ([]models.Transaction, int, int, float64, error) {
 	today := time.Now()
 
-	start, end := getMonthRange(today, monthOffset)
+	start, end := utils.GetMonthRange(today, monthOffset)
+	
+	query := `
+		SELECT 
+			id, 
+			customer, 
+			address,
+			quantity,
+			total_price,
+			COUNT(*) OVER() as total_count,
+			SUM(quantity) OVER() as total_quantity,
+			SUM(total_price) OVER() as total_revenue,
+			purchase_date,
+			created_at,
+			updated_at
+		FROM transactions
+		WHERE purchase_date BETWEEN $1 and $2
+		ORDER BY purchase_date DESC
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
+	defer cancel()
+
+	rows, err := s.db.QueryContext(ctx, query, start, end)
+	if err != nil {
+		return nil, 0, 0, 0, err
+	}
+	defer rows.Close()
+
+	transactions := []models.Transaction{}
+	var totalCount, totalQuantity int
+	var totalRevenue float64
+
+	for rows.Next() {
+		var t models.Transaction
+		if err := rows.Scan(
+			&t.ID,
+			&t.Customer,
+			&t.Address,
+			&t.Quantity,
+			&t.TotalPrice,
+			&totalCount, 
+			&totalQuantity,
+			&totalRevenue,
+			&t.PurchaseDate,
+			&t.CreatedAt,
+			&t.UpdatedAt,
+		); err != nil {
+			return transactions, 0, 0, 0, err
+		}
+		transactions = append(transactions, t)
+	}
+	if err = rows.Err(); err != nil {
+		return transactions, 0, 0, 0, err
+	}
+
+	return transactions, totalCount, totalQuantity, totalRevenue, nil
+}
+
+func (s *TransactionStore) GetAllDaily(ctx context.Context, date time.Time) ([]models.Transaction, int, int, float64, error) {
+	start, end := utils.GetDayRange(date)
 	
 	query := `
 		SELECT 
@@ -323,21 +383,6 @@ func (s *TransactionStore) Delete(ctx context.Context, tID string) error {
 	return nil
 }
 
-func getWeekRange(now time.Time, weekOffset int) (time.Time, time.Time) {
-	// find this week's monday
-	weekday := int(now.Weekday())
-	if weekday == 0 { // Sunday is classified as 0 in Go
-		weekday = 7
-	}
-	
-	startOfWeek := now.AddDate(0, 0, -(weekday - 1) - (weekOffset * 7))
-	startOfWeek = time.Date(startOfWeek.Year(), startOfWeek.Month(), startOfWeek.Day(), 0, 0, 0, 0, startOfWeek.Location())
-
-	endOfWeek := startOfWeek.AddDate(0, 0, 6).Add(time.Hour * 23 + time.Minute * 59 + time.Second * 59)
-
-	return startOfWeek, endOfWeek
-}
-
 func (s *TransactionStore) GetTotalWeeks(ctx context.Context) (int, error) {
     query := `
 		SELECT COUNT(DISTINCT date_trunc('week', purchase_date)) 
@@ -353,26 +398,4 @@ func (s *TransactionStore) GetTotalWeeks(ctx context.Context) (int, error) {
     }
 
     return int(totalPages), nil
-}
-
-func getMonthRange(now time.Time, monthOffset int) (time.Time, time.Time) {
-	year, month, _ := now.Date()
-	targetMonth := time.Month(month) + time.Month(monthOffset)
-	targetYear := year
-
-	if targetMonth < time.January {
-		targetMonth += 12
-		targetYear--
-	} else if targetMonth > time.December {
-		targetMonth -= 12
-		targetYear++ 
-	}
-	
-	startOfMonth := time.Date(targetYear, targetMonth, 1, 0, 0, 0, 0, now.Location())
-
-	// End of target month (first of next month, then day=0)
-    firstOfNextMonth := startOfMonth.AddDate(0, 1, 0)
-    endOfMonth := time.Date(firstOfNextMonth.Year(), firstOfNextMonth.Month(), 0, 23, 59, 59, 0, now.Location())
-
-	return startOfMonth, endOfMonth
 }
