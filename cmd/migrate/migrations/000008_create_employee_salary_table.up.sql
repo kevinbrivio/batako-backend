@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS employee_salary(
+    id VARCHAR(36) PRIMARY KEY,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    total_production INTEGER NOT NULL,
+    salary DOUBLE PRECISION NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+)
