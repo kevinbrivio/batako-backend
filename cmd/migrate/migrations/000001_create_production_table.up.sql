@@ -1,3 +1,5 @@
+CREATE SCHEMA IF NOT EXISTS my_schema;
+
 CREATE TABLE IF NOT EXISTS productions(
     id VARCHAR(36) PRIMARY KEY,
     quantity INTEGER NOT NULL,

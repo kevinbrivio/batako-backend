@@ -1,0 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS citext;
+
+CREATE DATABASE batako;
+CREATE USER batako_user WITH PASSWORD 'batako_password_123';
+GRANT ALL PRIVILEGES ON DATABASE batako TO batako_user;

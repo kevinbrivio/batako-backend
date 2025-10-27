@@ -11,7 +11,7 @@ type APIResponse struct {
 }
 
 type PaginatedResponse struct {
-	Data interface{} `json:"data"`
+	Items interface{} `json:"items"`
 	Total int `json:"total"`
 	Page int `json:"page"`
 	PageSize int `json:"page_size"`
@@ -37,11 +37,7 @@ func ReadJSON(r *http.Request, data any) error {
 
 // Handling error
 func WriteError(w http.ResponseWriter, err error, customMsg ...string) error {
-	message := "Server error"
-	
-	if len(customMsg) > 0 && customMsg[0] != "" {
-		message = customMsg[0]
-	}
+	var message string
 
 	var status int
 	var errorMsg string
@@ -50,13 +46,17 @@ func WriteError(w http.ResponseWriter, err error, customMsg ...string) error {
 	if appErr, ok := err.(*Error); ok {
 		status = appErr.StatusCode
 		errorMsg = appErr.Message
-		if len(customMsg) > 0 && customMsg[0] == "" {
-            message = appErr.Message
-        }
+		message = appErr.Message
 	} else {
 		status = http.StatusInternalServerError
 		errorMsg = "Server internal error"
+		message = "Server error"
 	}
+
+	// If customMsg is specifically given and not empty, override
+    if len(customMsg) > 0 && customMsg[0] != "" {
+        message = customMsg[0]
+    }
 
 	resp := map[string]any {
 		"error": errorMsg,

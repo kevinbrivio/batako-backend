@@ -1,0 +1,2 @@
+ALTER TABLE productions
+ADD COLUMN sand_used DOUBLE PRECISION NOT NULL;

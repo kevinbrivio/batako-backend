@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/kevinbrivio/batako-backend/internal/models"
@@ -32,6 +33,11 @@ func (h *ProductionHandler) CreateProduction(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	
+	now := time.Now()
+	if req.ProductionDate.After(now) {
+		utils.WriteError(w, utils.NewBadRequestError("Date cannot be in the future"))
+		return
+	} 
 	
 	if err := h.Store.Production.Create(ctx, &req); err != nil {
 		utils.WriteError(w, utils.NewInternalServerError(err))
@@ -52,7 +58,7 @@ func (h *ProductionHandler) GetAllProductions(w http.ResponseWriter, r *http.Req
 
 	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
 	if err != nil || limit < 1{
-		limit = 10 // default to 1
+		limit = 6 // default to 6 -> weekly
 	}
 
 	// Calculate offset
@@ -64,10 +70,10 @@ func (h *ProductionHandler) GetAllProductions(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	totalPages := (totalCount + limit - 1) / page
+	totalPages := (totalCount + limit - 1) / limit
 	
 	response := utils.PaginatedResponse{
-		Data: prods,
+		Items: prods,
 		Total: totalCount,
 		Page: page,
 		PageSize: limit,
@@ -75,6 +81,34 @@ func (h *ProductionHandler) GetAllProductions(w http.ResponseWriter, r *http.Req
 	}
 	
 	utils.WriteJSON(w, http.StatusOK, "Sucessfully get all productions", response)
+}
+
+func (h *ProductionHandler) GetProductionMonthly(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	monthNum, _ := strconv.Atoi(r.URL.Query().Get("month"))
+	currentMonth := int(time.Now().Month())
+	targetOffset := monthNum - currentMonth
+
+	if targetOffset < -6 {
+		targetOffset += 12
+	}
+
+	p, totalCount, totalQuantity, err := h.Store.Production.GetAllMonthly(ctx, targetOffset)
+	if err != nil {
+		utils.WriteError(w, utils.NewInternalServerError(err))
+		return
+	}
+
+	data := map[string]interface{}{
+		"productions": p,
+		"total_count": totalCount,
+		"total_quantity": totalQuantity,
+		"month": monthNum,
+		"month_name": time.Month(monthNum).String(),
+	}
+
+	utils.WriteJSON(w, http.StatusOK, "Successfully get monthly productions", data)
 }
 
 func (h *ProductionHandler) GetProduction(w http.ResponseWriter, r *http.Request) {
@@ -90,7 +124,7 @@ func (h *ProductionHandler) GetProduction(w http.ResponseWriter, r *http.Request
 	prod, err := h.Store.Production.GetByID(ctx, idStr)
 
 	if err != nil {
-		utils.WriteError(w, utils.NewInternalServerError(err))
+		utils.WriteError(w, err)
 		return
 	}
 
