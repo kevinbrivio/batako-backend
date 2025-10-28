@@ -148,6 +148,27 @@ func (s *ProductionStore) GetAllMonthly(ctx context.Context, monthOffset int) ([
 	return productions, totalCount, totalQuantity, nil
 }
 
+func (s *ProductionStore) GetTotalProduction(ctx context.Context, startDate, endDate time.Time) (int, error) {
+	query := `
+		SELECT COALESCE(SUM(quantity), 0)
+		FROM productions
+		WHERE production_date
+		BETWEEN $1 AND $2 
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
+	defer cancel()
+
+	var total int
+	err := s.db.QueryRowContext(ctx, query, startDate, endDate).Scan(&total)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return total, nil
+}
+
 func (s *ProductionStore) GetByID(ctx context.Context, pID string) (*models.Production, error) {
 	query := `
 		SELECT * FROM productions
