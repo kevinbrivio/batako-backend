@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS sand_types (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS sand_purchases (
+    id VARCHAR(36) PRIMARY KEY,
+    sand_type_id INT NOT NULL REFERENCES sand_types(id),
+    quantity INTEGER NOT NULL CHECK(quantity > 0),
+    price_per_truck DOUBLE PRECISION NOT NULL,
+    purchase_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
