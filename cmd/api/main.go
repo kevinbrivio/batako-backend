@@ -66,6 +66,7 @@ func main() {
 		r.Post("/", prodHandler.CreateProduction)
 		r.Get("/", prodHandler.GetAllProductions)
 		r.Get("/monthly", prodHandler.GetProductionMonthly)
+		r.Get("/weekly", prodHandler.GetProductionWeekly)
 		r.Get("/{id}", prodHandler.GetProduction)
 		r.Put("/{id}", prodHandler.UpdateProduction)
 		r.Delete("/{id}", prodHandler.DeleteProduction)
@@ -83,7 +84,8 @@ func main() {
 	})
 
 	r.Route("/salary", func(r chi.Router) {
-		r.Get("/", salaryHandler.GetSalary)
+		r.Get("/weekly", salaryHandler.GetWeeklySalary)
+		r.Get("/monthly", salaryHandler.GetMonthlySalaries)
 	})
 	
 	log.Println("Server running at :8080")

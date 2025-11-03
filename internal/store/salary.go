@@ -9,6 +9,7 @@ import (
 	"github.com/go-co-op/gocron/v2"
 	"github.com/google/uuid"
 	"github.com/kevinbrivio/batako-backend/internal/models"
+	"github.com/kevinbrivio/batako-backend/internal/utils"
 )
 
 type SalaryStore struct {
@@ -16,27 +17,68 @@ type SalaryStore struct {
 	prodStore *ProductionStore
 }
 
-func (s *SalaryStore) GetWeeklySalary(ctx context.Context, productionDate time.Time) (float64, error) {
-	today := time.Now()
-	targetDate := int(productionDate.Weekday())
-	startDate := today.AddDate(0, 0, -targetDate + 1)
-	endDate := startDate.AddDate(0, 0, 6)
+func (s *SalaryStore) GetWeekly(ctx context.Context, productionDate time.Time) (float64, int, error) {
+	targetDate := time.Date(productionDate.Year(), productionDate.Month(), productionDate.Day(), 0, 0, 0, 0, productionDate.Location())
 	
 	query := `
-		SELECT salary
+		SELECT salary, total_production
 		FROM employee_salary
-		WHERE start_date = $2 AND end_date = $3
+		WHERE $1 BETWEEN start_date AND end_date
 	`
 	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
 	defer cancel()
 
 	var salary float64
-	err := s.db.QueryRowContext(ctx, query, startDate, endDate).Scan(&salary)
+	var totalProduction int 
+
+	err := s.db.QueryRowContext(ctx, query, targetDate).Scan(&salary, &totalProduction)
 	if err != nil {
-		return 0, nil
+		return 0, 0, nil
 	}
 
-	return salary, nil
+	log.Printf("Salary: %.2f", salary)
+
+	return salary, totalProduction, nil
+}
+
+func (s *SalaryStore) GetMonthly(ctx context.Context, monthOffset int) ([]models.EmployeeSalary, int, error) {
+	today := time.Now()
+
+	start, end := utils.GetMonthRange(today, monthOffset)
+	
+	query := `
+		SELECT id, salary, total_production, start_date, end_date, count(*) over() as total_count
+		FROM employee_salary
+		WHERE start_date <= $2 AND end_date >= $1
+	`
+	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
+	defer cancel()
+
+	rows, err := s.db.QueryContext(ctx, query, start, end)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	salaries := []models.EmployeeSalary{}
+	var totalCount int
+
+	for rows.Next() {
+		var sal models.EmployeeSalary
+		if err := rows.Scan(
+			&sal.ID,
+			&sal.Salary,
+			&sal.TotalProduction,
+			&sal.StartDate,
+			&sal.EndDate,
+			&totalCount,
+		); err != nil {
+			return salaries, 0, err
+		}
+		salaries = append(salaries, sal)
+	}
+
+	return salaries, totalCount, nil
 }
 
 func (s *SalaryStore) AddSalary(ctx context.Context, es *models.EmployeeSalary) error {
@@ -104,8 +146,8 @@ func(s *SalaryStore) StartSchedulers(ctx context.Context) {
     _, err := scheduler.NewJob(
         gocron.WeeklyJob(
 			1, // One week a time
-			gocron.NewWeekdays(time.Saturday),
-			gocron.NewAtTimes(gocron.NewAtTime(23, 59, 59)),
+			gocron.NewWeekdays(time.Wednesday),
+			gocron.NewAtTimes(gocron.NewAtTime(17, 16, 0)),
 		),
 		gocron.NewTask(func() {
 			if err := s.GenerateWeeklySalary(ctx); err != nil {

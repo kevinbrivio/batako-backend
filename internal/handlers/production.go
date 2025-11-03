@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -109,6 +110,44 @@ func (h *ProductionHandler) GetProductionMonthly(w http.ResponseWriter, r *http.
 	}
 
 	utils.WriteJSON(w, http.StatusOK, "Successfully get monthly productions", data)
+}
+
+func (h *ProductionHandler) GetProductionWeekly(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var req models.WeeklyRequest
+	if err := utils.ReadJSON(r, &req); err != nil {
+		utils.WriteError(w, utils.NewBadRequestError("Invalid JSON format"))
+		return
+	}	
+
+	log.Print(req.StartDate)
+	log.Print(req.EndDate)
+
+	startDate, err := time.Parse("2006-01-02", req.StartDate)
+	if err != nil {
+		utils.WriteError(w, utils.NewBadRequestError("Invalid start_date format"))
+		return
+	}
+
+	endDate, err := time.Parse("2006-01-02", req.EndDate)
+	if err != nil {
+		utils.WriteError(w, utils.NewBadRequestError("Invalid end_date format"))
+		return
+	}
+
+	p, totalCount, err := h.Store.Production.GetAllWeekly(ctx, startDate, endDate)
+	if err != nil {
+		utils.WriteError(w, utils.NewInternalServerError(err))
+		return
+	}
+
+	data := map[string]interface{}{
+		"total_count": totalCount,
+		"productions": p,
+	}
+
+	utils.WriteJSON(w, http.StatusOK, "Sucessfully get weekly productions", data)
 }
 
 func (h *ProductionHandler) GetProduction(w http.ResponseWriter, r *http.Request) {
