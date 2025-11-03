@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -146,6 +147,79 @@ func (s *ProductionStore) GetAllMonthly(ctx context.Context, monthOffset int) ([
 	}
 
 	return productions, totalCount, totalQuantity, nil
+}
+
+func (s *ProductionStore) GetAllWeekly(ctx context.Context, startDate, endDate time.Time) ([]models.Production, int, error) {
+	query := `
+		SELECT 
+			id, 
+			quantity,
+			cement_used,
+			COUNT(*) OVER() as total_count,
+			production_date,
+			created_at,
+			updated_at
+		FROM productions
+		WHERE production_date BETWEEN $1 and $2
+		ORDER BY production_date DESC
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
+	defer cancel()
+
+	log.Print(startDate)
+	log.Print(endDate)
+
+	rows, err := s.db.QueryContext(ctx, query, startDate, endDate)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	productions := []models.Production{}
+	var totalCount int
+
+	for rows.Next() {
+		var p models.Production
+		if err := rows.Scan(
+			&p.ID,
+			&p.Quantity,
+			&p.CementUsed,
+			&totalCount, 
+			&p.ProductionDate,
+			&p.CreatedAt,
+			&p.UpdatedAt,
+		); err != nil {
+			return productions, 0, err
+		}
+		productions = append(productions, p)
+	}
+	if err = rows.Err(); err != nil {
+		return productions, 0, err
+	}
+
+	return productions, totalCount, nil
+}
+
+func (s *ProductionStore) GetTotalProduction(ctx context.Context, startDate, endDate time.Time) (int, error) {
+	query := `
+		SELECT COALESCE(SUM(quantity), 0)
+		FROM productions
+		WHERE production_date
+		BETWEEN $1 AND $2 
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second * 5)
+	defer cancel()
+
+	var total int
+	err := s.db.QueryRowContext(ctx, query, startDate, endDate).Scan(&total)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return total, nil
 }
 
 func (s *ProductionStore) GetByID(ctx context.Context, pID string) (*models.Production, error) {

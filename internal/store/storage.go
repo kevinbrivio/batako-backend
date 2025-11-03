@@ -13,7 +13,9 @@ type Storage struct {
 		Create(context.Context, *models.Production) error
 		GetAll(context.Context, int, int) ([]models.Production, int, error)
 		GetAllMonthly(context.Context, int) ([]models.Production, int, int, error)
+		GetAllWeekly(context.Context, time.Time, time.Time) ([]models.Production, int, error)
 		GetByID(context.Context, string) (*models.Production, error)
+		GetTotalProduction(context.Context, time.Time, time.Time) (int, error)
 		Update(context.Context, *models.Production) error
 		Delete(context.Context, string) error
 	}
@@ -28,11 +30,20 @@ type Storage struct {
 		Delete(context.Context, string) error
 		GetTotalWeeks(ctx context.Context) (int, error)
 	}
+	Salary interface {
+		GetWeekly(context.Context, time.Time) (float64, int, error)
+		GetMonthly(context.Context, int) ([]models.EmployeeSalary, int, error)
+		AddSalary(context.Context, *models.EmployeeSalary) error
+		GenerateWeeklySalary(context.Context) error
+		StartSchedulers(context.Context)
+	}
 }
 
 func NewStorage(db *sql.DB) Storage {
+	prodStore := &ProductionStore{db: db}
 	return Storage{
 		Production: &ProductionStore{db: db},
 		Transaction: &TransactionStore{db: db},
+		Salary: &SalaryStore{db: db, prodStore: prodStore},
 	}
 }

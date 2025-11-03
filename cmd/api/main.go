@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"net/http"
@@ -45,6 +46,11 @@ func main() {
 	storage := store.NewStorage(db)
 	prodHandler := handlers.NewProductionHandler(storage)
 	transactionHandler := handlers.NewTransactionHandler(storage)
+	salaryHandler := handlers.NewSalaryStorage(storage)
+	
+	// Run scheduler -> Calculate weekly salary
+	salaryStorage := storage.Salary
+	go salaryStorage.StartSchedulers(context.Background())
 
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
@@ -60,6 +66,7 @@ func main() {
 		r.Post("/", prodHandler.CreateProduction)
 		r.Get("/", prodHandler.GetAllProductions)
 		r.Get("/monthly", prodHandler.GetProductionMonthly)
+		r.Get("/weekly", prodHandler.GetProductionWeekly)
 		r.Get("/{id}", prodHandler.GetProduction)
 		r.Put("/{id}", prodHandler.UpdateProduction)
 		r.Delete("/{id}", prodHandler.DeleteProduction)
@@ -74,6 +81,11 @@ func main() {
 		r.Get("/{id}", transactionHandler.GetTransaction)
 		r.Put("/{id}", transactionHandler.UpdateTransaction)
 		r.Delete("/{id}", transactionHandler.DeleteTransaction)
+	})
+
+	r.Route("/salary", func(r chi.Router) {
+		r.Get("/weekly", salaryHandler.GetWeeklySalary)
+		r.Get("/monthly", salaryHandler.GetMonthlySalaries)
 	})
 	
 	log.Println("Server running at :8080")
