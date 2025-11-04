@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS cement_stocks(
     cement_type_id INT NOT NULL REFERENCES cement_types(id),
     quantity DOUBLE PRECISION NOT NULL CHECK (quantity >= 0),
     price_per_bag DOUBLE PRECISION NOT NULL,
+    purchase_date DATE NOT NULL DEFAULT CURRENT_DATE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
