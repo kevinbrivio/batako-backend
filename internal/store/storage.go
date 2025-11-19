@@ -37,13 +37,29 @@ type Storage struct {
 		GenerateWeeklySalary(context.Context) error
 		StartSchedulers(context.Context)
 	}
+	CementStock interface {
+		CheckTypes(context.Context, string) (int, error)
+		Create(context.Context, *models.CementStock) error
+		Update(context.Context, *models.CementStock) error
+		GetAllMonthly(context.Context, int) ([]models.CementStock, int, int, float64, error)
+		GetByType(context.Context, string, int) ([]models.CementStock, error)
+		Delete(context.Context, string) error
+	}
+	SandPurchase interface {
+		CheckTypes(context.Context, string) (int, error)
+		Create(context.Context, *models.SandPurchase) error
+		Update(context.Context, *models.SandPurchase) error
+		GetAllMonthly(context.Context, int) ([]models.SandPurchase, int, int, float64, error)
+	}
 }
 
 func NewStorage(db *sql.DB) Storage {
 	prodStore := &ProductionStore{db: db}
 	return Storage{
-		Production: &ProductionStore{db: db},
-		Transaction: &TransactionStore{db: db},
-		Salary: &SalaryStore{db: db, prodStore: prodStore},
+		Production:   &ProductionStore{db: db},
+		Transaction:  &TransactionStore{db: db},
+		Salary:       &SalaryStore{db: db, prodStore: prodStore},
+		CementStock:  &CementStockStore{db: db},
+		SandPurchase: &SandPurchaseStore{db: db},
 	}
 }
