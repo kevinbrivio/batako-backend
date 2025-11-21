@@ -50,6 +50,8 @@ type Storage struct {
 		Create(context.Context, *models.SandPurchase) error
 		Update(context.Context, *models.SandPurchase) error
 		GetAllMonthly(context.Context, int) ([]models.SandPurchase, int, int, float64, error)
+		GetByType(context.Context, string, int) ([]models.SandPurchase, error)
+		Delete(context.Context, string) error
 	}
 }
 

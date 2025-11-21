@@ -100,8 +100,9 @@ func main() {
 		r.Route("/sand", func(r chi.Router) {
 			r.Post("/", sandPurchaseHandler.AddSandPurchase)
 			r.Put("/{id}", sandPurchaseHandler.UpdateSand)
-			// r.Get("/monthly", sandPurchaseHandler.GetMonthlySandPurchase)
-			// r.Delete("{id}", sandPurchaseHandler.DeleteCementStock)
+			r.Delete("/{id}", sandPurchaseHandler.DeleteSandPurchase)
+			r.Get("/monthly", sandPurchaseHandler.GetMonthlySandPurchase)
+			r.Get("/{type}", sandPurchaseHandler.GetSandPurchaseByType)
 		})
 	})
 
