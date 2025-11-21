@@ -1,2 +1,14 @@
 # ENVIRONMENT FILES
 .env*
+
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+
+# Test Binaries
+*.test
+
+*.out
