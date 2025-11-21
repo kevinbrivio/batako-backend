@@ -11,4 +11,11 @@ bin/
 # Test Binaries
 *.test
 
+# Output of the go coverage tool
 *.out
+
+# Go workspace file
+go.work
+
+# Dependency directories
+vendor/
