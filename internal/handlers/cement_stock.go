@@ -62,7 +62,7 @@ func (h *CementStockHandler) AddCementStock(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusCreated, "Cement stock successfully added", req)
+	utils.WriteJSON(w, http.StatusCreated, "Cement stock successfully added", domain)
 }
 
 func (h *CementStockHandler) UpdateCementStock(w http.ResponseWriter, r *http.Request) {
@@ -101,7 +101,7 @@ func (h *CementStockHandler) UpdateCementStock(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, "Cement stock updated successfully", stock)
+	utils.WriteJSON(w, http.StatusOK, "Cement stock updated successfully", domain)
 }
 
 func (h *CementStockHandler) GetMonthlyCementStock(w http.ResponseWriter, r *http.Request) {
@@ -188,5 +188,5 @@ func (h *CementStockHandler) DeleteCementStock(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, "Transaction deleted successfully", nil)
+	utils.WriteJSON(w, http.StatusOK, "Cement stock deleted successfully", nil)
 }
