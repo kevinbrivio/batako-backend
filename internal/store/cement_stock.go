@@ -38,7 +38,7 @@ func (s *CementStockStore) Create(ctx context.Context, c *models.CementStock) er
 	query := `
 		INSERT INTO cement_stocks (id, cement_type_id, quantity, price_per_bag, purchase_date)
 		VALUES ($1, $2, $3, $4, $5)
-		RETURNING created_at, updated_at
+		RETURNING cement_type_id, created_at, updated_at
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
@@ -53,6 +53,7 @@ func (s *CementStockStore) Create(ctx context.Context, c *models.CementStock) er
 		c.PricePerBag,
 		c.PurchaseDate,
 	).Scan(
+		&c.CementType.ID,
 		&c.CreatedAt,
 		&c.UpdatedAt,
 	)
@@ -86,7 +87,7 @@ func (s *CementStockStore) Update(ctx context.Context, c *models.CementStock) er
 		UPDATE cement_stocks
 		SET cement_type_id = $2, quantity = $3, price_per_bag = $4, purchase_date = $5
 		WHERE id = $1
-		RETURNING created_at, updated_at
+		RETURNING cement_type_id, created_at, updated_at
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
@@ -106,6 +107,7 @@ func (s *CementStockStore) Update(ctx context.Context, c *models.CementStock) er
 		c.PricePerBag,
 		c.PurchaseDate,
 	).Scan(
+		&c.CementType.ID,
 		&c.CreatedAt,
 		&c.UpdatedAt,
 	)
@@ -301,12 +303,11 @@ func (s *CementStockStore) Delete(ctx context.Context, stockId string) error {
 	}
 
 	rows, err := res.RowsAffected()
+	if rows == 0 {
+		return utils.NewNotFoundError("Cement stock")
+	}
 	if err != nil {
 		return err
-	}
-
-	if rows == 0 {
-		return utils.NewNotFoundError("Transaction")
 	}
 
 	return nil
