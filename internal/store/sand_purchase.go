@@ -261,11 +261,15 @@ func (s *SandPurchaseStore) Delete(ctx context.Context, id string) error {
 	}
 
 	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
 	if rows == 0 {
 		return utils.NewNotFoundError("Sand purchase")
 	}
-	if err != nil {
-		return err
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return nil

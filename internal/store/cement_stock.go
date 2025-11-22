@@ -303,11 +303,15 @@ func (s *CementStockStore) Delete(ctx context.Context, stockId string) error {
 	}
 
 	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
 	if rows == 0 {
 		return utils.NewNotFoundError("Cement stock")
 	}
-	if err != nil {
-		return err
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return nil
