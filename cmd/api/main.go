@@ -49,6 +49,8 @@ func main() {
 	salaryHandler := handlers.NewSalaryStorage(storage)
 	cementStockHandler := handlers.NewCementStockHandler(storage)
 	sandPurchaseHandler := handlers.NewSandPurchaseHandler(storage)
+	dashboardHandler := handlers.NewDashboardHandler(storage)
+
 	// Run scheduler -> Calculate weekly salary
 	salaryStorage := storage.Salary
 	go salaryStorage.StartSchedulers(context.Background())
@@ -104,6 +106,10 @@ func main() {
 			r.Get("/monthly", sandPurchaseHandler.GetMonthlySandPurchase)
 			r.Get("/{type}", sandPurchaseHandler.GetSandPurchaseByType)
 		})
+	})
+
+	r.Route("/dashboard", func(r chi.Router) {
+		r.Get("/monthly", dashboardHandler.GetMonthly)
 	})
 
 	log.Println("Server running at :8080")

@@ -53,6 +53,9 @@ type Storage struct {
 		GetByType(context.Context, string, int) ([]models.SandPurchase, error)
 		Delete(context.Context, string) error
 	}
+	Dashboard interface {
+		Get(context.Context, int) (*models.Dashboard, error)
+	}
 }
 
 func NewStorage(db *sql.DB) Storage {
@@ -63,5 +66,6 @@ func NewStorage(db *sql.DB) Storage {
 		Salary:       &SalaryStore{db: db, prodStore: prodStore},
 		CementStock:  &CementStockStore{db: db},
 		SandPurchase: &SandPurchaseStore{db: db},
+		Dashboard: 		&DashboardStore{db: db},
 	}
 }
