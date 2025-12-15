@@ -1,6 +1,7 @@
 # ENVIRONMENT FILES
 .env*
 
+<<<<<<< Updated upstream
 # Binaries
 bin/
 *.exe
@@ -19,3 +20,6 @@ go.work
 
 # Dependency directories
 vendor/
+=======
+bin/
+>>>>>>> Stashed changes
