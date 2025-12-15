@@ -322,7 +322,7 @@ func (s *TransactionStore) GetByID(ctx context.Context, pID string) (*models.Tra
 func (s *TransactionStore) Update(ctx context.Context, t *models.Transaction) error {
 	query := `
 		UPDATE transactions
-		SET customer = $2, address = $3, quantity = $4, total_price = $4, purchase_date = $5, updated_at = NOW()
+		SET customer = $2, address = $3, quantity = $4, total_price = $5, purchase_date = $6, updated_at = NOW()
 		WHERE id = $1
 		RETURNING created_at, updated_at
 	`
